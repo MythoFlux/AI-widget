@@ -5,55 +5,246 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI-chat</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 0 16px;
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --border: #dde3ee;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --user: #dbeafe;
+      --assistant: #ecfeef;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
     }
-    #chat {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 16px;
-      min-height: 300px;
-      margin-bottom: 12px;
-      white-space: pre-wrap;
-      background: #fafafa;
-    }
-    textarea {
-      width: 100%;
-      height: 100px;
+
+    * {
       box-sizing: border-box;
     }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .chat-app {
+      width: min(900px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgb(15 23 42 / 8%);
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(120deg, #eef2ff, #f8fafc);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.6rem;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .messages {
+      height: 360px;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #fcfdff;
+    }
+
+    .message {
+      padding: 12px 14px;
+      border-radius: 12px;
+      max-width: min(75ch, 90%);
+      line-height: 1.45;
+      white-space: pre-wrap;
+      border: 1px solid transparent;
+    }
+
+    .message .label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.86rem;
+      color: #334155;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: var(--user);
+      border-color: #bfdbfe;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: var(--assistant);
+      border-color: #bbf7d0;
+    }
+
+    .composer {
+      border-top: 1px solid var(--border);
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      resize: vertical;
+      min-height: 84px;
+      max-height: 180px;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font: inherit;
+      line-height: 1.4;
+    }
+
+    textarea:focus {
+      outline: 2px solid #93c5fd;
+      outline-offset: 1px;
+      border-color: #93c5fd;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
     button {
-      margin-top: 8px;
-      padding: 10px 16px;
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font: inherit;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
       cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 10px;
+      }
+
+      .messages {
+        height: 50vh;
+      }
+
+      .actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      button {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>AI-chat</h1>
-  <div id="chat">Tähän keskustelu tulee näkyviin.</div>
-  <textarea id="prompt" placeholder="Kirjoita viesti..."></textarea>
-  <br />
-  <button id="send">Lähetä</button>
+  <main class="chat-app" aria-label="AI-chat-sovellus">
+    <header class="header">
+      <h1>AI-chat</h1>
+      <p class="subtitle">Staattinen käyttöliittymä GitHub Pagesiin (ei backendiä).</p>
+    </header>
+
+    <section id="messages" class="messages" aria-live="polite" aria-label="Viestialue">
+      <article class="message assistant">
+        <span class="label">AI</span>
+        Hei! Tämä on staattinen demokäyttöliittymä.
+      </article>
+    </section>
+
+    <section class="composer" aria-label="Viestin kirjoitus">
+      <label for="prompt">Kirjoita viesti</label>
+      <textarea id="prompt" placeholder="Kirjoita viesti tähän..."></textarea>
+      <div class="actions">
+        <span class="hint">Vinkki: Ctrl/Cmd + Enter lähettää viestin.</span>
+        <button id="send" type="button">Lähetä</button>
+      </div>
+    </section>
+  </main>
 
   <script>
-    const chat = document.getElementById("chat");
+    const messagesEl = document.getElementById("messages");
     const promptEl = document.getElementById("prompt");
-    const button = document.getElementById("send");
+    const sendButton = document.getElementById("send");
 
     function addMessage(role, text) {
-      chat.textContent += `\n\n${role}: ${text}`;
+      const article = document.createElement("article");
+      article.className = `message ${role === "Sinä" ? "user" : "assistant"}`;
+
+      const label = document.createElement("span");
+      label.className = "label";
+      label.textContent = role;
+
+      const content = document.createElement("div");
+      content.textContent = text;
+
+      article.appendChild(label);
+      article.appendChild(content);
+      messagesEl.appendChild(article);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    button.addEventListener("click", () => {
+    function sendMessage() {
       const message = promptEl.value.trim();
-      if (!message) return;
+      if (!message) {
+        return;
+      }
+
+      sendButton.disabled = true;
       addMessage("Sinä", message);
-      addMessage("AI", "Tässä vaiheessa backendia ei ole vielä liitetty.");
       promptEl.value = "";
+
+      window.setTimeout(() => {
+        addMessage("AI", "Backendia ei ole vielä liitetty.");
+        sendButton.disabled = false;
+        promptEl.focus();
+      }, 250);
+    }
+
+    sendButton.addEventListener("click", sendMessage);
+
+    promptEl.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        sendMessage();
+      }
     });
   </script>
 </body>

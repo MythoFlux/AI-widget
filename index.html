@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI-chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+    #chat {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 300px;
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+      background: #fafafa;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 8px;
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>AI-chat</h1>
+  <div id="chat">Tähän keskustelu tulee näkyviin.</div>
+  <textarea id="prompt" placeholder="Kirjoita viesti..."></textarea>
+  <br />
+  <button id="send">Lähetä</button>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const promptEl = document.getElementById("prompt");
+    const button = document.getElementById("send");
+
+    function addMessage(role, text) {
+      chat.textContent += `\n\n${role}: ${text}`;
+    }
+
+    button.addEventListener("click", () => {
+      const message = promptEl.value.trim();
+      if (!message) return;
+      addMessage("Sinä", message);
+      addMessage("AI", "Tässä vaiheessa backendia ei ole vielä liitetty.");
+      promptEl.value = "";
+    });
+  </script>
+</body>
+</html>

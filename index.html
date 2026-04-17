@@ -238,6 +238,7 @@
         setStatus("");
       } catch (error) {
         setStatus(`Virhe: ${error.message}`, true);
+        addMessage("AI", `⚠️ Virhe: ${error.message}`);
       } finally {
         sendButton.disabled = false;
         promptEl.focus();

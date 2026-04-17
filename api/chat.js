@@ -41,15 +41,19 @@ function toResponsesInput(messages) {
     ]
   };
 
-  const history = messages.map((message) => ({
-    role: message.role,
-    content: [
-      {
-        type: "input_text",
-        text: message.content
-      }
-    ]
-  }));
+  const history = messages.map((message) => {
+    const contentType = message.role === "assistant" ? "output_text" : "input_text";
+
+    return {
+      role: message.role,
+      content: [
+        {
+          type: contentType,
+          text: message.content
+        }
+      ]
+    };
+  });
 
   return [tutorInstruction, ...history];
 }

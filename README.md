@@ -36,3 +36,22 @@ Ei tässä minimirakenteessa. Vercel tunnistaa suoraan:
 - `api/chat.js` serverless-funktiona reitille `/api/chat`
 
 `vercel.json` tarvitaan vasta, jos haluat erikoisreitityksiä tai muuta lisäkonfiguraatiota.
+
+## Vianmääritys: konsolin varoitukset (Radix / Zustand / async listener)
+
+Jos konsolissa näkyy esimerkiksi:
+
+- `[DEPRECATED] Default export is deprecated. Instead use import { create } from 'zustand'.`
+- ``DialogContent` requires a `DialogTitle` ...`
+- `Warning: Missing 'Description' or aria-describedby=...`
+- `A listener indicated an asynchronous response by returning true ...`
+
+niin ne eivät tule tämän repositorion koodista (tässä projektissa ei käytetä Reactia, Radixia tai Zustandia). Yleisin syy on selaimen lisäosa, joka injektoi oman käyttöliittymän sivulle.
+
+Tarkista näin:
+
+1. Avaa sivu Incognito/Private-ikkunassa ilman lisäosia.
+2. Poista lisäosat väliaikaisesti käytöstä (etenkin AI-/hakemisto-/overlay-lisäosat).
+3. Lataa sivu uudelleen ja vertaa konsolilokia.
+
+Lisäksi `index.html` sisältää nyt suodattimen tunnetulle lisäosan aiheuttamalle `unhandledrejection`-viestille, jotta sovelluksen oma toiminta ei häiriinny tästä kohinasta.

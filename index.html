@@ -222,25 +222,26 @@
     }
 
     function renderHistory() {
-      messagesEl.innerHTML = "";
-
-      conversationHistory.forEach((message) => {
-        const article = document.createElement("article");
-        article.className = `message ${message.role}`;
-
-        const label = document.createElement("span");
-        label.className = "label";
-        label.textContent = message.role === "user" ? "Sinä" : "AI";
-
-        const content = document.createElement("div");
-        content.textContent = message.content;
-
-        article.appendChild(label);
-        article.appendChild(content);
-        messagesEl.appendChild(article);
-      });
+      const nextChildren = conversationHistory.map(createMessageElement);
+      messagesEl.replaceChildren(...nextChildren);
 
       messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function createMessageElement(message) {
+      const article = document.createElement("article");
+      article.className = `message ${message.role}`;
+
+      const label = document.createElement("span");
+      label.className = "label";
+      label.textContent = message.role === "user" ? "Sinä" : "AI";
+
+      const content = document.createElement("div");
+      content.textContent = message.content;
+
+      article.appendChild(label);
+      article.appendChild(content);
+      return article;
     }
 
     function saveHistory() {
@@ -331,9 +332,11 @@
     function clearHistory() {
       const confirmed = window.confirm("Oletko varma, että haluat tyhjentää keskustelun?");
       if (!confirmed) return;
+
       conversationHistory = [defaultInitialMessage];
-      saveHistory();
-      renderHistory();
+      localStorage.removeItem(STORAGE_KEY);
+      messagesEl.replaceChildren(createMessageElement(defaultInitialMessage));
+      messagesEl.scrollTop = messagesEl.scrollHeight;
       setStatus("Keskustelu tyhjennetty.");
       promptEl.focus();
     }

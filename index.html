@@ -341,6 +341,23 @@
       promptEl.focus();
     }
 
+    function setupKnownNonAppWarningFilter() {
+      window.addEventListener("unhandledrejection", (event) => {
+        const reasonText = String(event.reason?.message || event.reason || "");
+        const isKnownExtensionWarning = reasonText.includes(
+          "A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received"
+        );
+
+        if (isKnownExtensionWarning) {
+          event.preventDefault();
+          console.info(
+            "[AI-chat] Sivu ohitti selaimen lisäosan aiheuttaman unhandledrejection-varoituksen."
+          );
+        }
+      });
+    }
+
+    setupKnownNonAppWarningFilter();
     sendButton.addEventListener("click", sendMessage);
     clearHistoryButton.addEventListener("click", clearHistory);
 

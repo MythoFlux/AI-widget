@@ -181,12 +181,7 @@
       <p class="subtitle">Yksinkertainen chat: frontend + Vercel Function (/api/chat).</p>
     </header>
 
-    <section id="messages" class="messages" aria-live="polite" aria-label="Viestialue">
-      <article class="message assistant">
-        <span class="label">AI</span>
-        Hei! Lähetä viesti, niin vastaan palvelinpuolen API-kutsun kautta.
-      </article>
-    </section>
+    <section id="messages" class="messages" aria-live="polite" aria-label="Viestialue"></section>
 
     <section class="composer" aria-label="Viestin kirjoitus">
       <label for="prompt">Kirjoita viesti</label>
@@ -194,7 +189,7 @@
       <div class="actions">
         <div id="status" class="status" role="status" aria-live="polite"></div>
         <div class="button-group">
-          <button id="clear-history" class="clear-button" type="button">Tyhjennä historia</button>
+          <button id="clear-history" class="clear-button" type="button">Tyhjennä keskustelu</button>
           <button id="send" type="button">Lähetä</button>
         </div>
       </div>
@@ -202,28 +197,95 @@
   </main>
 
   <script>
+    const STORAGE_KEY = "ai-chat-history";
+    const MAX_MESSAGES_FOR_BACKEND = 20;
+
     const messagesEl = document.getElementById("messages");
     const promptEl = document.getElementById("prompt");
     const sendButton = document.getElementById("send");
     const clearHistoryButton = document.getElementById("clear-history");
     const statusEl = document.getElementById("status");
-    const initialAssistantMessage = messagesEl.innerHTML;
 
-    function addMessage(role, text) {
-      const article = document.createElement("article");
-      article.className = `message ${role === "Sinä" ? "user" : "assistant"}`;
+    const defaultInitialMessage = {
+      role: "assistant",
+      content: "Hei! Lähetä viesti, niin vastaan palvelinpuolen API-kutsun kautta.",
+      includeInModelContext: false
+    };
 
-      const label = document.createElement("span");
-      label.className = "label";
-      label.textContent = role;
+    let conversationHistory = [];
 
-      const content = document.createElement("div");
-      content.textContent = text;
+    function isValidHistoryItem(item) {
+      return item &&
+        (item.role === "user" || item.role === "assistant") &&
+        typeof item.content === "string" &&
+        item.content.trim().length > 0;
+    }
 
-      article.appendChild(label);
-      article.appendChild(content);
-      messagesEl.appendChild(article);
+    function renderHistory() {
+      messagesEl.innerHTML = "";
+
+      conversationHistory.forEach((message) => {
+        const article = document.createElement("article");
+        article.className = `message ${message.role}`;
+
+        const label = document.createElement("span");
+        label.className = "label";
+        label.textContent = message.role === "user" ? "Sinä" : "AI";
+
+        const content = document.createElement("div");
+        content.textContent = message.content;
+
+        article.appendChild(label);
+        article.appendChild(content);
+        messagesEl.appendChild(article);
+      });
+
       messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function saveHistory() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(conversationHistory));
+    }
+
+    function loadHistory() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          conversationHistory = [defaultInitialMessage];
+          return;
+        }
+
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          conversationHistory = [defaultInitialMessage];
+          return;
+        }
+
+        const validMessages = parsed.filter(isValidHistoryItem).map((item) => ({
+          role: item.role,
+          content: item.content,
+          includeInModelContext: item.includeInModelContext !== false
+        }));
+
+        conversationHistory = validMessages.length > 0 ? validMessages : [defaultInitialMessage];
+      } catch {
+        conversationHistory = [defaultInitialMessage];
+      }
+    }
+
+    function addMessageToHistory(role, content, options = {}) {
+      const includeInModelContext = options.includeInModelContext !== false;
+      conversationHistory.push({ role, content, includeInModelContext });
+      saveHistory();
+      renderHistory();
+    }
+
+    function buildMessagesForBackend() {
+      const messagesForModel = conversationHistory
+        .filter((message) => message.includeInModelContext !== false)
+        .map((message) => ({ role: message.role, content: message.content }));
+
+      return messagesForModel.slice(-MAX_MESSAGES_FOR_BACKEND);
     }
 
     function setStatus(text, isError = false) {
@@ -235,16 +297,17 @@
       const message = promptEl.value.trim();
       if (!message) return;
 
-      addMessage("Sinä", message);
+      addMessageToHistory("user", message);
       promptEl.value = "";
       sendButton.disabled = true;
+      clearHistoryButton.disabled = true;
       setStatus("Ladataan...");
 
       try {
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message })
+          body: JSON.stringify({ messages: buildMessagesForBackend() })
         });
 
         const data = await response.json();
@@ -253,22 +316,26 @@
           throw new Error(data.error || "Tuntematon virhe");
         }
 
-        addMessage("AI", data.reply || "(Tyhjä vastaus)");
+        addMessageToHistory("assistant", data.reply || "(Tyhjä vastaus)");
         setStatus("");
       } catch (error) {
         setStatus(`Virhe: ${error.message}`, true);
-        addMessage("AI", `⚠️ Virhe: ${error.message}`);
+        addMessageToHistory("assistant", `⚠️ Virhe: ${error.message}`);
       } finally {
         sendButton.disabled = false;
+        clearHistoryButton.disabled = false;
         promptEl.focus();
       }
     }
 
     function clearHistory() {
-      const confirmed = window.confirm("Oletko varma, että haluat tyhjentää keskusteluhistorian?");
+      const confirmed = window.confirm("Oletko varma, että haluat tyhjentää keskustelun?");
       if (!confirmed) return;
-      messagesEl.innerHTML = initialAssistantMessage;
-      setStatus("Keskusteluhistoria tyhjennetty.");
+      conversationHistory = [defaultInitialMessage];
+      saveHistory();
+      renderHistory();
+      setStatus("Keskustelu tyhjennetty.");
+      promptEl.focus();
     }
 
     sendButton.addEventListener("click", sendMessage);
@@ -280,6 +347,11 @@
         sendMessage();
       }
     });
+
+    loadHistory();
+    saveHistory();
+    renderHistory();
+    promptEl.focus();
   </script>
 </body>
 </html>

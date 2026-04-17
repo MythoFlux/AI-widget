@@ -23,6 +23,37 @@ function extractReply(data) {
   return "";
 }
 
+function isValidMessage(message) {
+  if (!message || typeof message !== "object") return false;
+  if (!(message.role === "user" || message.role === "assistant")) return false;
+  if (typeof message.content !== "string") return false;
+  return message.content.trim().length > 0;
+}
+
+function toResponsesInput(messages) {
+  const tutorInstruction = {
+    role: "system",
+    content: [
+      {
+        type: "input_text",
+        text: "Toimit opiskelijaa auttavana opettajana matematiikan, fysiikan ja kemian tehtävissä. Auta vaiheittain: selitä ajattelu ja välivaiheet selkeästi, ja vältä antamasta pelkkää loppuvastausta ellei käyttäjä pyydä sitä erikseen."
+      }
+    ]
+  };
+
+  const history = messages.map((message) => ({
+    role: message.role,
+    content: [
+      {
+        type: "input_text",
+        text: message.content
+      }
+    ]
+  }));
+
+  return [tutorInstruction, ...history];
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -39,9 +70,13 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: "Virheellinen JSON body." });
   }
 
-  const message = (body.message || "").toString().trim();
-  if (!message) {
-    return res.status(400).json({ error: "Body-muoto: { \"message\": \"käyttäjän viesti\" }" });
+  if (!Array.isArray(body.messages)) {
+    return res.status(400).json({ error: "Body-muoto: { \"messages\": [{ \"role\": \"user\", \"content\": \"...\" }] }" });
+  }
+
+  const validMessages = body.messages.filter(isValidMessage);
+  if (validMessages.length === 0) {
+    return res.status(400).json({ error: "messages-taulukossa pitää olla vähintään yksi kelvollinen viesti." });
   }
 
   try {
@@ -53,7 +88,7 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        input: message
+        input: toResponsesInput(validMessages)
       })
     });
 

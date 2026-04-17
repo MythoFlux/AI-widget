@@ -1,15 +1,38 @@
-# AI-widget
+# AI-widget (Vercel)
 
-Yksinkertainen staattinen chat-käyttöliittymä tiedostossa `index.html`.
+Kevyt chat-sovellus, jossa:
 
-## Käyttö lokaalisti
-Avaa `index.html` selaimessa.
+- frontend on `index.html`
+- backend on Vercel Functionissa `api/chat.js` (reitillä `/api/chat`)
+- OpenAI-avainta käytetään vain palvelinpuolella ympäristömuuttujasta `OPENAI_API_KEY`
 
-## Julkaisu GitHub Pagesissa
-1. Pushaa muutokset GitHubiin.
-2. Avaa GitHubissa **Settings → Pages**.
-3. Valitse **Build and deployment → Source: Deploy from a branch**.
-4. Valitse haara (esim. `main`) ja kansio **`/ (root)`**.
-5. Tallenna ja odota julkaisu.
+## Tiedostorakenne
 
-GitHub Pages julkaisee sivun suoraan tiedostosta `index.html` ilman build-työkaluja.
+```
+.
+├── api/
+│   └── chat.js
+├── index.html
+└── README.md
+```
+
+## Julkaisu Verceliin (ilman paikallista CLI:tä)
+
+1. Tallenna nämä tiedostot GitHub-repoon.
+2. Avaa Vercel ja **Add New Project**.
+3. Valitse GitHub-repo.
+4. Framework voi olla **Other** (ei build-vaihetta tarvita).
+5. Lisää ympäristömuuttuja:
+   - Name: `OPENAI_API_KEY`
+   - Value: oma OpenAI API key
+   - Environment: vähintään **Production** (halutessa myös Preview/Development)
+6. Deploy.
+
+## Tarvitaanko `vercel.json`?
+
+Ei tässä minimirakenteessa. Vercel tunnistaa suoraan:
+
+- `index.html` staattisena etusivuna
+- `api/chat.js` serverless-funktiona reitille `/api/chat`
+
+`vercel.json` tarvitaan vasta, jos haluat erikoisreitityksiä tai muuta lisäkonfiguraatiota.

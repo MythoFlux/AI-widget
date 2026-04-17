@@ -16,11 +16,10 @@
       --assistant: #ecfeef;
       --accent: #2563eb;
       --accent-hover: #1d4ed8;
+      --error: #b91c1c;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -48,10 +47,7 @@
       background: linear-gradient(120deg, #eef2ff, #f8fafc);
     }
 
-    h1 {
-      margin: 0;
-      font-size: 1.6rem;
-    }
+    h1 { margin: 0; font-size: 1.6rem; }
 
     .subtitle {
       margin: 8px 0 0;
@@ -130,10 +126,13 @@
       gap: 12px;
     }
 
-    .hint {
+    .status {
       color: var(--muted);
-      font-size: 0.86rem;
+      font-size: 0.9rem;
+      min-height: 1.2rem;
     }
+
+    .status.error { color: var(--error); }
 
     button {
       border: 0;
@@ -146,9 +145,7 @@
       cursor: pointer;
     }
 
-    button:hover {
-      background: var(--accent-hover);
-    }
+    button:hover { background: var(--accent-hover); }
 
     button:disabled {
       cursor: not-allowed;
@@ -156,22 +153,10 @@
     }
 
     @media (max-width: 640px) {
-      body {
-        padding: 10px;
-      }
-
-      .messages {
-        height: 50vh;
-      }
-
-      .actions {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      button {
-        width: 100%;
-      }
+      body { padding: 10px; }
+      .messages { height: 50vh; }
+      .actions { flex-direction: column; align-items: stretch; }
+      button { width: 100%; }
     }
   </style>
 </head>
@@ -179,13 +164,13 @@
   <main class="chat-app" aria-label="AI-chat-sovellus">
     <header class="header">
       <h1>AI-chat</h1>
-      <p class="subtitle">Staattinen käyttöliittymä GitHub Pagesiin (ei backendiä).</p>
+      <p class="subtitle">Yksinkertainen chat: frontend + Vercel Function (/api/chat).</p>
     </header>
 
     <section id="messages" class="messages" aria-live="polite" aria-label="Viestialue">
       <article class="message assistant">
         <span class="label">AI</span>
-        Hei! Tämä on staattinen demokäyttöliittymä.
+        Hei! Lähetä viesti, niin vastaan palvelinpuolen API-kutsun kautta.
       </article>
     </section>
 
@@ -193,7 +178,7 @@
       <label for="prompt">Kirjoita viesti</label>
       <textarea id="prompt" placeholder="Kirjoita viesti tähän..."></textarea>
       <div class="actions">
-        <span class="hint">Vinkki: Ctrl/Cmd + Enter lähettää viestin.</span>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
         <button id="send" type="button">Lähetä</button>
       </div>
     </section>
@@ -203,6 +188,7 @@
     const messagesEl = document.getElementById("messages");
     const promptEl = document.getElementById("prompt");
     const sendButton = document.getElementById("send");
+    const statusEl = document.getElementById("status");
 
     function addMessage(role, text) {
       const article = document.createElement("article");
@@ -221,21 +207,41 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    function sendMessage() {
-      const message = promptEl.value.trim();
-      if (!message) {
-        return;
-      }
+    function setStatus(text, isError = false) {
+      statusEl.textContent = text;
+      statusEl.classList.toggle("error", isError);
+    }
 
-      sendButton.disabled = true;
+    async function sendMessage() {
+      const message = promptEl.value.trim();
+      if (!message) return;
+
       addMessage("Sinä", message);
       promptEl.value = "";
+      sendButton.disabled = true;
+      setStatus("Ladataan...");
 
-      window.setTimeout(() => {
-        addMessage("AI", "Backendia ei ole vielä liitetty.");
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Tuntematon virhe");
+        }
+
+        addMessage("AI", data.reply || "(Tyhjä vastaus)");
+        setStatus("");
+      } catch (error) {
+        setStatus(`Virhe: ${error.message}`, true);
+      } finally {
         sendButton.disabled = false;
         promptEl.focus();
-      }, 250);
+      }
     }
 
     sendButton.addEventListener("click", sendMessage);

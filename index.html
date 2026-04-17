@@ -139,6 +139,45 @@
 
     .status.error { color: var(--error); }
 
+    .attachment-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .attachment-label {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .attachment-preview {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px;
+      max-width: 220px;
+      background: #fff;
+    }
+
+    .attachment-preview img {
+      display: block;
+      width: 100%;
+      max-height: 140px;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+
+    .ghost-button {
+      background: transparent;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+    }
+
+    .ghost-button:hover {
+      background: #f1f5f9;
+    }
+
     button {
       border: 0;
       border-radius: 10px;
@@ -186,6 +225,14 @@
     <section class="composer" aria-label="Viestin kirjoitus">
       <label for="prompt">Kirjoita viesti</label>
       <textarea id="prompt" placeholder="Kirjoita viesti tähän..."></textarea>
+      <div class="attachment-row" aria-label="Kuvakaappauksen liittäminen">
+        <label for="screenshot" class="attachment-label">Lisää kuvakaappaus (PNG/JPG/WebP) tai liitä Ctrl+V</label>
+        <input id="screenshot" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+        <button id="clear-screenshot" class="ghost-button" type="button">Poista kuva</button>
+      </div>
+      <div id="attachment-preview" class="attachment-preview" hidden>
+        <img id="attachment-image" alt="Valittu kuvakaappaus" />
+      </div>
       <div class="actions">
         <div id="status" class="status" role="status" aria-live="polite"></div>
         <div class="button-group">
@@ -204,7 +251,12 @@
     const promptEl = document.getElementById("prompt");
     const sendButton = document.getElementById("send");
     const clearHistoryButton = document.getElementById("clear-history");
+    const screenshotInput = document.getElementById("screenshot");
+    const clearScreenshotButton = document.getElementById("clear-screenshot");
+    const attachmentPreviewEl = document.getElementById("attachment-preview");
+    const attachmentImageEl = document.getElementById("attachment-image");
     const statusEl = document.getElementById("status");
+    const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024;
 
     const defaultInitialMessage = {
       role: "assistant",
@@ -213,6 +265,8 @@
     };
 
     let conversationHistory = [];
+    let pendingScreenshotDataUrl = "";
+    let pendingScreenshotName = "";
 
     function isValidHistoryItem(item) {
       return item &&
@@ -294,21 +348,114 @@
       statusEl.classList.toggle("error", isError);
     }
 
+    function clearPendingScreenshot() {
+      pendingScreenshotDataUrl = "";
+      pendingScreenshotName = "";
+      screenshotInput.value = "";
+      attachmentImageEl.removeAttribute("src");
+      attachmentPreviewEl.hidden = true;
+    }
+
+    function setPendingScreenshot(name, dataUrl) {
+      pendingScreenshotName = name;
+      pendingScreenshotDataUrl = dataUrl;
+      attachmentImageEl.src = dataUrl;
+      attachmentPreviewEl.hidden = false;
+    }
+
+    function isAcceptableImageFile(file) {
+      if (!file) {
+        clearPendingScreenshot();
+        return false;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        clearPendingScreenshot();
+        setStatus("Vain kuvatiedostot ovat sallittuja.", true);
+        return false;
+      }
+
+      if (file.size > MAX_SCREENSHOT_BYTES) {
+        clearPendingScreenshot();
+        setStatus("Kuvan maksimikoko on 5 Mt.", true);
+        return false;
+      }
+
+      return true;
+    }
+
+    function readScreenshotFile(file, sourceLabel) {
+      if (!isAcceptableImageFile(file)) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = typeof reader.result === "string" ? reader.result : "";
+        if (!dataUrl.startsWith("data:image/")) {
+          clearPendingScreenshot();
+          setStatus("Kuvan lukeminen epäonnistui.", true);
+          return;
+        }
+
+        setPendingScreenshot(file.name, dataUrl);
+        setStatus(`Kuvakaappaus valmis (${sourceLabel}): ${file.name}`);
+      };
+      reader.onerror = () => {
+        clearPendingScreenshot();
+        setStatus("Kuvan lukeminen epäonnistui.", true);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleScreenshotChange(event) {
+      const file = event.target.files?.[0];
+      readScreenshotFile(file, "tiedosto");
+    }
+
+    function handlePaste(event) {
+      const clipboardItems = event.clipboardData?.items;
+      if (!clipboardItems || clipboardItems.length === 0) return;
+
+      const imageItem = Array.from(clipboardItems).find((item) => item.type.startsWith("image/"));
+      if (!imageItem) return;
+
+      const imageFile = imageItem.getAsFile();
+      if (!imageFile) {
+        setStatus("Leikepöydän kuvaa ei voitu lukea.", true);
+        return;
+      }
+
+      event.preventDefault();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const extension = (imageFile.type.split("/")[1] || "png").replace(/[^a-z0-9]/gi, "");
+      const namedFile = new File([imageFile], `clipboard-${timestamp}.${extension}`, { type: imageFile.type });
+      readScreenshotFile(namedFile, "leikepöytä");
+    }
+
     async function sendMessage() {
       const message = promptEl.value.trim();
-      if (!message) return;
+      if (!message && !pendingScreenshotDataUrl) return;
 
-      addMessageToHistory("user", message);
+      const hasScreenshot = Boolean(pendingScreenshotDataUrl);
+      const userVisibleMessage = hasScreenshot
+        ? (message ? `${message}\n\n📎 Kuvakaappaus liitetty: ${pendingScreenshotName}` : `📎 Kuvakaappaus liitetty: ${pendingScreenshotName}`)
+        : message;
+
+      addMessageToHistory("user", userVisibleMessage);
       promptEl.value = "";
       sendButton.disabled = true;
       clearHistoryButton.disabled = true;
+      screenshotInput.disabled = true;
+      clearScreenshotButton.disabled = true;
       setStatus("Ladataan...");
 
       try {
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: buildMessagesForBackend() })
+          body: JSON.stringify({
+            messages: buildMessagesForBackend(),
+            latestUserImage: pendingScreenshotDataUrl || null
+          })
         });
 
         const data = await response.json();
@@ -319,12 +466,15 @@
 
         addMessageToHistory("assistant", data.reply || "(Tyhjä vastaus)");
         setStatus("");
+        clearPendingScreenshot();
       } catch (error) {
         setStatus(`Virhe: ${error.message}`, true);
         addMessageToHistory("assistant", `⚠️ Virhe: ${error.message}`);
       } finally {
         sendButton.disabled = false;
         clearHistoryButton.disabled = false;
+        screenshotInput.disabled = false;
+        clearScreenshotButton.disabled = false;
         promptEl.focus();
       }
     }
@@ -360,6 +510,12 @@
     setupKnownNonAppWarningFilter();
     sendButton.addEventListener("click", sendMessage);
     clearHistoryButton.addEventListener("click", clearHistory);
+    screenshotInput.addEventListener("change", handleScreenshotChange);
+    promptEl.addEventListener("paste", handlePaste);
+    clearScreenshotButton.addEventListener("click", () => {
+      clearPendingScreenshot();
+      setStatus("Kuvakaappaus poistettu.");
+    });
 
     promptEl.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {

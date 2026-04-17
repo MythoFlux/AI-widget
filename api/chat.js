@@ -30,7 +30,13 @@ function isValidMessage(message) {
   return message.content.trim().length > 0;
 }
 
-function toResponsesInput(messages) {
+function isValidDataImageUrl(value) {
+  if (typeof value !== "string") return false;
+  return /^data:image\/[a-zA-Z0-9.+-]+;base64,[a-zA-Z0-9+/=\s]+$/.test(value);
+}
+
+function toResponsesInput(messages, options = {}) {
+  const { latestUserImage } = options;
   const tutorInstruction = {
     role: "system",
     content: [
@@ -41,17 +47,32 @@ function toResponsesInput(messages) {
     ]
   };
 
-  const history = messages.map((message) => {
+  const lastUserIndex = (() => {
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      if (messages[i].role === "user") return i;
+    }
+    return -1;
+  })();
+
+  const history = messages.map((message, index) => {
     const contentType = message.role === "assistant" ? "output_text" : "input_text";
+    const content = [
+      {
+        type: contentType,
+        text: message.content
+      }
+    ];
+
+    if (latestUserImage && message.role === "user" && index === lastUserIndex) {
+      content.push({
+        type: "input_image",
+        image_url: latestUserImage
+      });
+    }
 
     return {
       role: message.role,
-      content: [
-        {
-          type: contentType,
-          text: message.content
-        }
-      ]
+      content
     };
   });
 
@@ -78,6 +99,10 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: "Body-muoto: { \"messages\": [{ \"role\": \"user\", \"content\": \"...\" }] }" });
   }
 
+  if (body.latestUserImage != null && !isValidDataImageUrl(body.latestUserImage)) {
+    return res.status(400).json({ error: "latestUserImage pitää olla kelvollinen data:image/*;base64 URL." });
+  }
+
   const validMessages = body.messages.filter(isValidMessage);
   if (validMessages.length === 0) {
     return res.status(400).json({ error: "messages-taulukossa pitää olla vähintään yksi kelvollinen viesti." });
@@ -92,7 +117,7 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        input: toResponsesInput(validMessages)
+        input: toResponsesInput(validMessages, { latestUserImage: body.latestUserImage || null })
       })
     });
 

@@ -226,7 +226,7 @@
       <label for="prompt">Kirjoita viesti</label>
       <textarea id="prompt" placeholder="Kirjoita viesti tähän..."></textarea>
       <div class="attachment-row" aria-label="Kuvakaappauksen liittäminen">
-        <label for="screenshot" class="attachment-label">Lisää kuvakaappaus (PNG/JPG/WebP)</label>
+        <label for="screenshot" class="attachment-label">Lisää kuvakaappaus (PNG/JPG/WebP) tai liitä Ctrl+V</label>
         <input id="screenshot" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
         <button id="clear-screenshot" class="ghost-button" type="button">Poista kuva</button>
       </div>
@@ -370,6 +370,15 @@
         return;
       }
 
+      processScreenshotFile(file);
+    }
+
+    function processScreenshotFile(file) {
+      if (!file) {
+        clearPendingScreenshot();
+        return;
+      }
+
       if (!file.type.startsWith("image/")) {
         clearPendingScreenshot();
         setStatus("Vain kuvatiedostot ovat sallittuja.", true);
@@ -399,6 +408,20 @@
         setStatus("Kuvan lukeminen epäonnistui.", true);
       };
       reader.readAsDataURL(file);
+    }
+
+    function handlePaste(event) {
+      const clipboardItems = event.clipboardData?.items;
+      if (!clipboardItems || clipboardItems.length === 0) return;
+
+      const imageItem = Array.from(clipboardItems).find((item) => item.type.startsWith("image/"));
+      if (!imageItem) return;
+
+      const imageFile = imageItem.getAsFile();
+      if (!imageFile) return;
+
+      event.preventDefault();
+      processScreenshotFile(imageFile);
     }
 
     async function sendMessage() {
@@ -485,6 +508,7 @@
       clearPendingScreenshot();
       setStatus("Kuvakaappaus poistettu.");
     });
+    document.addEventListener("paste", handlePaste);
 
     promptEl.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {

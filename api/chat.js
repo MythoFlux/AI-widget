@@ -42,7 +42,7 @@ function toResponsesInput(messages, options = {}) {
     content: [
       {
         type: "input_text",
-        text: "Toimit opiskelijaa auttavana opettajana matematiikan, fysiikan ja kemian tehtävissä. Auta vaiheittain: selitä ajattelu ja välivaiheet selkeästi, ja vältä antamasta pelkkää loppuvastausta ellei käyttäjä pyydä sitä erikseen."
+        text: "Toimit opiskelijaa auttavana opettajana matematiikan, fysiikan ja kemian tehtävissä. Auta vaiheittain: selitä ajattelu ja välivaiheet selkeästi, ja vältä antamasta pelkkää loppuvastausta ellei käyttäjä pyydä sitä erikseen. Kun kirjoitat matemaattisia lausekkeita, käytä LaTeX-muotoa. Käytä inline-kaavoihin merkintää $...$ ja erillisille riveille merkintää $$...$$. Älä käytä pelkkää Unicode-merkintää silloin, kun lauseke voidaan ilmaista LaTeXilla."
       }
     ]
   };

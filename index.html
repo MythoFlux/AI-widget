@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI-chat</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathlive@0.104.0/dist/mathlive.min.js"></script>
   <style>
     :root {
       color-scheme: light;
@@ -70,9 +73,9 @@
       border-radius: 12px;
       max-width: min(75ch, 90%);
       line-height: 1.45;
-      white-space: pre-wrap;
       border: 1px solid transparent;
     }
+    .message-content { white-space: pre-wrap; }
 
     .message .label {
       font-weight: 600;
@@ -177,6 +180,64 @@
     .ghost-button:hover {
       background: #f1f5f9;
     }
+    .math-button {
+      background: #0f766e;
+    }
+
+    .math-button:hover {
+      background: #0d5f59;
+    }
+
+    .math-editor-modal {
+      position: fixed;
+      inset: 0;
+      background: rgb(15 23 42 / 35%);
+      display: grid;
+      place-items: center;
+      z-index: 30;
+      padding: 16px;
+    }
+
+    .math-editor-modal[hidden] { display: none; }
+
+    .math-editor-panel {
+      width: min(650px, 100%);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgb(15 23 42 / 18%);
+    }
+
+    .math-editor-help {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    math-field {
+      width: 100%;
+      min-height: 56px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+      font-size: 1.1rem;
+    }
+
+    .math-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .math-example {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
 
     button {
       border: 0;
@@ -224,7 +285,7 @@
 
     <section class="composer" aria-label="Viestin kirjoitus">
       <label for="prompt">Kirjoita viesti</label>
-      <textarea id="prompt" placeholder="Kirjoita viesti tähän..."></textarea>
+      <textarea id="prompt" placeholder="Kirjoita viesti tähän... Vinkki: Lisää kaava painikkeella tai kirjoita esim. $x^2+1$ tai $$\\int_0^1 x^2\\,dx$$"></textarea>
       <div class="attachment-row" aria-label="Kuvakaappauksen liittäminen">
         <label for="screenshot" class="attachment-label">Lisää kuvakaappaus (PNG/JPG/WebP) tai liitä Ctrl+V</label>
         <input id="screenshot" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
@@ -236,12 +297,30 @@
       <div class="actions">
         <div id="status" class="status" role="status" aria-live="polite"></div>
         <div class="button-group">
+          <button id="add-formula" class="math-button" type="button">Lisää kaava</button>
           <button id="clear-history" class="clear-button" type="button">Tyhjennä keskustelu</button>
           <button id="send" type="button">Lähetä</button>
         </div>
       </div>
     </section>
   </main>
+
+  <div id="math-editor-modal" class="math-editor-modal" hidden>
+    <section class="math-editor-panel" role="dialog" aria-modal="true" aria-labelledby="math-editor-title">
+      <h2 id="math-editor-title">Lisää matemaattinen kaava</h2>
+      <p class="math-editor-help">Kirjoita kaava visuaalisesti. Kaava lisätään viestiin LaTeX-muodossa.</p>
+      <math-field id="math-editor-field"></math-field>
+      <div class="math-controls">
+        <label><input type="radio" name="math-mode" value="inline" checked /> Inline ($...$)</label>
+        <label><input type="radio" name="math-mode" value="display" /> Erillinen rivi ($$...$$)</label>
+      </div>
+      <div class="math-example">Esimerkit: <code>x^2+2x+1</code>, <code>\frac{-b\pm\sqrt{b^2-4ac}}{2a}</code></div>
+      <div class="button-group">
+        <button id="cancel-formula" type="button" class="ghost-button">Peruuta</button>
+        <button id="insert-formula" type="button">Lisää viestiin</button>
+      </div>
+    </section>
+  </div>
 
   <script>
     const STORAGE_KEY = "ai-chat-history";
@@ -250,12 +329,17 @@
     const messagesEl = document.getElementById("messages");
     const promptEl = document.getElementById("prompt");
     const sendButton = document.getElementById("send");
+    const addFormulaButton = document.getElementById("add-formula");
     const clearHistoryButton = document.getElementById("clear-history");
     const screenshotInput = document.getElementById("screenshot");
     const clearScreenshotButton = document.getElementById("clear-screenshot");
     const attachmentPreviewEl = document.getElementById("attachment-preview");
     const attachmentImageEl = document.getElementById("attachment-image");
     const statusEl = document.getElementById("status");
+    const mathEditorModalEl = document.getElementById("math-editor-modal");
+    const mathEditorFieldEl = document.getElementById("math-editor-field");
+    const insertFormulaButton = document.getElementById("insert-formula");
+    const cancelFormulaButton = document.getElementById("cancel-formula");
     const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024;
 
     const defaultInitialMessage = {
@@ -291,11 +375,68 @@
       label.textContent = message.role === "user" ? "Sinä" : "AI";
 
       const content = document.createElement("div");
-      content.textContent = message.content;
+      content.className = "message-content";
+      renderMessageContent(content, message.content);
 
       article.appendChild(label);
       article.appendChild(content);
       return article;
+    }
+
+    function tokenizeLatex(text) {
+      // Etsitään sekä $$display$$ että $inline$ -kaavat.
+      const tokens = [];
+      const mathPattern = /\$\$([\s\S]+?)\$\$|\$([^\n$]+?)\$/g;
+      let lastIndex = 0;
+      let match;
+
+      while ((match = mathPattern.exec(text)) !== null) {
+        const matchedText = match[0];
+        const start = match.index;
+        const end = start + matchedText.length;
+
+        if (start > lastIndex) {
+          tokens.push({ type: "text", value: text.slice(lastIndex, start) });
+        }
+
+        const latex = match[1] ?? match[2] ?? "";
+        const displayMode = typeof match[1] === "string";
+        tokens.push({ type: "math", value: latex, displayMode });
+        lastIndex = end;
+      }
+
+      if (lastIndex < text.length) {
+        tokens.push({ type: "text", value: text.slice(lastIndex) });
+      }
+
+      return tokens;
+    }
+
+    function renderMessageContent(container, rawText) {
+      container.replaceChildren();
+      const hasKatex = typeof window.katex !== "undefined";
+      const tokens = tokenizeLatex(rawText);
+
+      for (const token of tokens) {
+        if (token.type === "text" || !hasKatex) {
+          container.appendChild(document.createTextNode(
+            token.type === "text" ? token.value : `${token.displayMode ? "$$" : "$"}${token.value}${token.displayMode ? "$$" : "$"}`
+          ));
+          continue;
+        }
+
+        const mathElement = document.createElement(token.displayMode ? "div" : "span");
+        try {
+          // KaTeX renderöi vain LaTeXin, ei mallin mahdollista HTML:ää.
+          window.katex.render(token.value, mathElement, {
+            displayMode: token.displayMode,
+            throwOnError: false
+          });
+        } catch {
+          mathElement.textContent = `${token.displayMode ? "$$" : "$"}${token.value}${token.displayMode ? "$$" : "$"}`;
+        }
+        container.appendChild(mathElement);
+      }
     }
 
     function saveHistory() {
@@ -472,6 +613,39 @@
       }
     }
 
+    function openMathEditor() {
+      mathEditorModalEl.hidden = false;
+      mathEditorFieldEl.value = "";
+      setStatus("Lisää kaava ja paina \"Lisää viestiin\".");
+      setTimeout(() => mathEditorFieldEl.focus(), 0);
+    }
+
+    function closeMathEditor() {
+      mathEditorModalEl.hidden = true;
+      promptEl.focus();
+    }
+
+    function insertAtCursor(input, textToInsert) {
+      const start = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? input.value.length;
+      input.setRangeText(textToInsert, start, end, "end");
+    }
+
+    function insertFormulaToPrompt() {
+      const latex = (typeof mathEditorFieldEl.getValue === "function" ? mathEditorFieldEl.getValue("latex") : "").trim();
+      if (!latex) {
+        setStatus("Kirjoita ensin kaava editoriin.", true);
+        return;
+      }
+
+      const mode = document.querySelector('input[name="math-mode"]:checked')?.value || "inline";
+      const wrapped = mode === "display" ? `$$${latex}$$` : `$${latex}$`;
+      const insertion = mode === "display" ? `\n${wrapped}\n` : wrapped;
+      insertAtCursor(promptEl, insertion);
+      closeMathEditor();
+      setStatus("Kaava lisätty viestiin.");
+    }
+
     function clearHistory() {
       const confirmed = window.confirm("Oletko varma, että haluat tyhjentää keskustelun?");
       if (!confirmed) return;
@@ -502,6 +676,12 @@
 
     setupKnownNonAppWarningFilter();
     sendButton.addEventListener("click", sendMessage);
+    addFormulaButton.addEventListener("click", openMathEditor);
+    insertFormulaButton.addEventListener("click", insertFormulaToPrompt);
+    cancelFormulaButton.addEventListener("click", closeMathEditor);
+    mathEditorModalEl.addEventListener("click", (event) => {
+      if (event.target === mathEditorModalEl) closeMathEditor();
+    });
     clearHistoryButton.addEventListener("click", clearHistory);
     screenshotInput.addEventListener("change", handleScreenshotChange);
     clearScreenshotButton.addEventListener("click", () => {

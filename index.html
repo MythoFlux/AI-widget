@@ -369,7 +369,6 @@
       overflow-x: auto;
     }
 
-    .math-preview-input,
     .math-latex-output {
       width: 100%;
       min-height: 130px;
@@ -388,7 +387,6 @@
       min-height: 265px;
     }
 
-    .math-preview-input:focus,
     .math-latex-output:focus,
     .symbol-search:focus {
       outline: 2px solid #93c5fd;
@@ -490,7 +488,7 @@
   <div id="math-editor-modal" class="math-editor-modal" hidden>
     <section class="math-editor-panel" role="dialog" aria-modal="true" aria-labelledby="math-editor-title">
       <h2 id="math-editor-title">Lisää matemaattinen kaava</h2>
-      <p class="math-editor-help">Valitse merkkejä vasemmalta, muokkaa keskellä ja näe vastaava LaTeX oikealla.</p>
+      <p class="math-editor-help">Valitse merkkejä vasemmalta, näe esikatselu keskellä ja muokkaa LaTeXia oikealla.</p>
       <div class="math-mode-toggle">
         <strong>Näyttötapa:</strong>
         <label><input type="radio" name="math-mode" value="inline" checked /> Inline</label>
@@ -505,7 +503,6 @@
         <section class="math-pane" aria-label="Esikatselu">
           <h3>Esikatselu</h3>
           <div id="math-preview-render" class="math-preview-render" aria-live="polite"></div>
-          <textarea id="math-editor-input" class="math-preview-input" spellcheck="false" aria-label="Kaavaeditori"></textarea>
         </section>
         <section class="math-pane" aria-label="LaTeX-koodi">
           <h3>LaTeX</h3>
@@ -541,7 +538,6 @@
     const mathEditorModalEl = document.getElementById("math-editor-modal");
     const mathSymbolSearchEl = document.getElementById("math-symbol-search");
     const mathSymbolCategoriesEl = document.getElementById("math-symbol-categories");
-    const mathEditorInputEl = document.getElementById("math-editor-input");
     const mathLatexOutputEl = document.getElementById("math-latex-output");
     const mathPreviewRenderEl = document.getElementById("math-preview-render");
     const insertFormulaButton = document.getElementById("insert-formula");
@@ -558,7 +554,6 @@
     let pendingScreenshotDataUrl = "";
     let pendingScreenshotName = "";
     let pendingMathEdit = null;
-    let isSyncingMathEditor = false;
 
     const mathSymbolGroups = [
       {
@@ -580,6 +575,12 @@
         symbols: [
           { label: "Σ", latex: "\\sum_{i=1}^{n}" }, { label: "Π", latex: "\\prod_{i=1}^{n}" }, { label: "∫", latex: "\\int_{a}^{b}" }, { label: "lim", latex: "\\lim_{x \\to \\infty}" },
           { label: "sin", latex: "\\sin\\left(x\\right)" }, { label: "cos", latex: "\\cos\\left(x\\right)" }, { label: "log", latex: "\\log\\left(x\\right)" }, { label: "ln", latex: "\\ln\\left(x\\right)" }
+        ]
+      },
+      {
+        name: "Ympäristöt",
+        symbols: [
+          { label: "aligned", latex: "\\begin{aligned}\na &= b + c \\\\\nd &= e - f\n\\end{aligned}" }
         ]
       },
       {
@@ -617,27 +618,19 @@
       renderKatexToElement(mathPreviewRenderEl, latex, getCurrentMathMode() === "display");
     }
 
-    function syncMathEditorFromInput(source) {
-      if (isSyncingMathEditor) return;
-      isSyncingMathEditor = true;
-      if (source === "input") {
-        mathLatexOutputEl.value = mathEditorInputEl.value;
-      } else if (source === "latex") {
-        mathEditorInputEl.value = mathLatexOutputEl.value;
-      }
-      updateMathPreview(mathEditorInputEl.value.trim());
-      isSyncingMathEditor = false;
+    function syncMathPreviewFromLatex() {
+      updateMathPreview(mathLatexOutputEl.value.trim());
     }
 
     function insertLatexIntoEditor(snippet) {
-      const textarea = mathEditorInputEl;
+      const textarea = mathLatexOutputEl;
       const start = textarea.selectionStart ?? textarea.value.length;
       const end = textarea.selectionEnd ?? textarea.value.length;
       textarea.value = `${textarea.value.slice(0, start)}${snippet}${textarea.value.slice(end)}`;
       const nextCursor = start + snippet.length;
       textarea.focus();
       textarea.setSelectionRange(nextCursor, nextCursor);
-      syncMathEditorFromInput("input");
+      syncMathPreviewFromLatex();
     }
 
     function renderMathSymbolPalette() {
@@ -1100,7 +1093,6 @@
     function openMathEditor(mode = "inline", latex = "", pos = null, nodeType = null) {
       pendingMathEdit = pos !== null && Number.isFinite(pos) ? { pos, nodeType } : null;
       mathEditorModalEl.hidden = false;
-      mathEditorInputEl.value = latex;
       mathLatexOutputEl.value = latex;
       const selectedMode = mode === "display" ? "display" : "inline";
       const radioToSelect = document.querySelector(`input[name="math-mode"][value="${selectedMode}"]`);
@@ -1108,7 +1100,7 @@
       renderMathSymbolPalette();
       updateMathPreview(latex);
       setStatus("Lisää kaava ja paina \"Lisää tekstiin\".");
-      setTimeout(() => mathEditorInputEl.focus(), 0);
+      setTimeout(() => mathLatexOutputEl.focus(), 0);
     }
 
     function closeMathEditor() {
@@ -1118,7 +1110,7 @@
     }
 
     function insertFormulaToPrompt() {
-      const latex = mathEditorInputEl.value.trim();
+      const latex = mathLatexOutputEl.value.trim();
       if (!latex) {
         setStatus("Kirjoita ensin kaava editoriin.", true);
         return;
@@ -1192,11 +1184,10 @@
     addFormulaButton.addEventListener("click", openMathEditor);
     insertFormulaButton.addEventListener("click", insertFormulaToPrompt);
     cancelFormulaButton.addEventListener("click", closeMathEditor);
-    mathEditorInputEl.addEventListener("input", () => syncMathEditorFromInput("input"));
-    mathLatexOutputEl.addEventListener("input", () => syncMathEditorFromInput("latex"));
+    mathLatexOutputEl.addEventListener("input", syncMathPreviewFromLatex);
     mathSymbolSearchEl.addEventListener("input", renderMathSymbolPalette);
     document.querySelectorAll('input[name="math-mode"]').forEach((radio) => {
-      radio.addEventListener("change", () => updateMathPreview(mathEditorInputEl.value.trim()));
+      radio.addEventListener("change", () => updateMathPreview(mathLatexOutputEl.value.trim()));
     });
     mathEditorModalEl.addEventListener("click", (event) => {
       if (event.target === mathEditorModalEl) closeMathEditor();

@@ -29,7 +29,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
       symbols: [
         { label: "\\frac{a}{b}", latex: "\\frac{a}{b}" }, { label: "xⁿ", latex: "x^n" }, { label: "√x", latex: "\\sqrt{x}" },
         { label: "ⁿ√x", latex: "\\sqrt[n]{x}" }, { label: "xᵢ", latex: "x_i" }, { label: "xⁱʲ", latex: "x_i^j" }, { label: "|x|", latex: "\\left|x\\right|" },
-        { label: "", latex: "~_{a}^{b}" }
+        { label: "", latex: "~_{a}^{b}X" }
       ]
     },
     {

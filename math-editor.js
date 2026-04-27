@@ -16,17 +16,20 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
     {
       name: "Perus",
       symbols: [
-        { label: "+", latex: "+" }, { label: "−", latex: "-" }, { label: "×", latex: "\\times " }, { label: "÷", latex: "\\div " },
-        { label: "=", latex: "=" }, { label: "≠", latex: "\\neq " }, { label: "≈", latex: "\\approx " }, { label: "±", latex: "\\pm " },
-        { label: "⋅", latex: "\\cdot " }, { label: ", ", latex: "\\, " }, { label: "∓", latex: "\\mp " }, { label: ":", latex: ":" },
-        { label: "%", latex: "~\\%" }, { label: "‰", latex: "~‰" }, { label: "∞", latex: "\\infty " }
+        { label: "+", latex: "+" }, { label: "−", latex: "-" }, { label: "⋅", latex: "\\cdot " }, { label: "×", latex: "\\times " }, 
+        { label: "÷", latex: "\\div " },
+        { label: "=", latex: "=" }, { label: "≠", latex: "\\neq " }, { label: "≈", latex: "\\approx " }, { label: "±", latex: "\\pm " }, 
+        { label: "∓", latex: "\\mp " }, { label: ":", latex: ":" },
+        { label: "%", latex: "~\\%" }, { label: "‰", latex: "~‰" }, { label: "∞", latex: "\\infty " }, { label: "pieni välilyönti", latex: "pieni\\, väli" }, 
+        { label: "keskikokoinen välilyönti", latex: "iso~väli" }, { label: "desimaalipilkku ilman välilyöntiä", latex: "a{,}b" }
       ]
     },
     {
       name: "Murtoluvut & potenssit",
       symbols: [
-        { label: "\\\\frac{a}{b}", latex: "\\frac{a}{b}" }, { label: "x²", latex: "x^2" }, { label: "xⁿ", latex: "x^n" }, { label: "√x", latex: "\\sqrt{x}" },
-        { label: "ⁿ√x", latex: "\\sqrt[n]{x}" }, { label: "xᵢ", latex: "x_i" }, { label: "xⁱʲ", latex: "x_i^j" }, { label: "|x|", latex: "\\left|x\\right|" }
+        { label: "\\frac{a}{b}", latex: "\\frac{a}{b}" }, { label: "xⁿ", latex: "x^n" }, { label: "√x", latex: "\\sqrt{x}" },
+        { label: "ⁿ√x", latex: "\\sqrt[n]{x}" }, { label: "xᵢ", latex: "x_i" }, { label: "xⁱʲ", latex: "x_i^j" }, { label: "|x|", latex: "\\left|x\\right|" },
+        { label: "", latex: "~_{a}^{b}" }
       ]
     },
     {
@@ -41,7 +44,8 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
       symbols: [
         { label: "kohdistettu", latex: "\\begin{aligned}\na &= b + c \\\\\nd &= e - f\n\\end{aligned}" },
         { label: "yhtälöpari", latex: "\\begin{cases}\nx + y = 1 \\\\\n2x - y = 3\n\\end{cases}" },
-        { label: "matriisi", latex: "\\begin{bmatrix}\na & b \\\\\nc & d\n\\end{bmatrix}" }
+        { label: "matriisi", latex: "\\begin{bmatrix}\na & b \\\\\nc & d\n\\end{bmatrix}" },
+        { label: "teksti", latex: "\\text{pystyteksti}" }
       ]
     },
     {

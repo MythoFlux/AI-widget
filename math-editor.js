@@ -37,7 +37,9 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
     {
       name: "Ympäristöt",
       symbols: [
-        { label: "aligned", latex: "\\begin{aligned}\na &= b + c \\\\\nd &= e - f\n\\end{aligned}" }
+        { label: "kohdistettu", latex: "\\begin{aligned}\na &= b + c \\\\\nd &= e - f\n\\end{aligned}" },
+        { label: "yhtälöpari", latex: "\\begin{cases}\nx + y = 1 \\\\\n2x - y = 3\n\\end{cases}" },
+        { label: "matriisi", latex: "\\begin{bmatrix}\na & b \\\\\nc & d\n\\end{bmatrix}" }
       ]
     },
     {

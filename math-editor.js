@@ -140,9 +140,10 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         button.type = "button";
         button.className = "symbol-button";
         const buttonLabel = symbol.label || symbol.latex;
-        button.title = buttonLabel;
         button.setAttribute("aria-label", buttonLabel);
         renderKatexToElement(button, symbol.latex, false, symbol.label);
+        button.title = buttonLabel;
+        button.querySelectorAll("[title]").forEach((el) => el.removeAttribute("title"));
         button.addEventListener("click", () => insertLatexIntoEditor(symbol.latex));
         grid.appendChild(button);
       }

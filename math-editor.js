@@ -63,19 +63,23 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
     }
   ];
 
-  function renderKatexToElement(element, latex, displayMode) {
+  function renderKatexToElement(element, latex, displayMode, fallbackText = null) {
+    if (!element) return false;
+    const fallback = fallbackText ?? `${displayMode ? "$$" : "$"}${latex}${displayMode ? "$$" : "$"}`;
     if (typeof window.katex === "undefined") {
-      element.textContent = `${displayMode ? "$$" : "$"}${latex}${displayMode ? "$$" : "$"}`;
-      return;
+      element.textContent = fallback;
+      return false;
     }
     try {
       window.katex.render(latex, element, {
         displayMode,
         throwOnError: false
       });
+      return true;
     } catch {
-      element.textContent = `${displayMode ? "$$" : "$"}${latex}${displayMode ? "$$" : "$"}`;
+      element.textContent = fallback;
       element.classList.add("math-error");
+      return false;
     }
   }
 
@@ -132,7 +136,8 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         button.type = "button";
         button.className = "symbol-button";
         button.title = symbol.latex;
-        button.innerHTML = symbol.label;
+        button.setAttribute("aria-label", symbol.label);
+        renderKatexToElement(button, symbol.latex, false, symbol.label);
         button.addEventListener("click", () => insertLatexIntoEditor(symbol.latex));
         grid.appendChild(button);
       }

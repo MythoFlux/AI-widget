@@ -331,12 +331,21 @@
       border-radius: 8px;
       background: #fff;
       color: #0f172a;
-      min-height: 38px;
+      min-height: 46px;
       display: grid;
       place-items: center;
-      padding: 4px;
+      padding: 6px 8px;
       font-size: 1.05rem;
+      line-height: 1.15;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       cursor: pointer;
+    }
+
+    .symbol-button .katex {
+      max-width: 100%;
+      font-size: 1.05em;
     }
 
     .symbol-button:hover {

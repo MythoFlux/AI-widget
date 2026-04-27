@@ -25,7 +25,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
     {
       name: "Murtoluvut & potenssit",
       symbols: [
-        { label: "a/b", latex: "\\frac{a}{b}" }, { label: "x²", latex: "x^2" }, { label: "xⁿ", latex: "x^n" }, { label: "√x", latex: "\\sqrt{x}" },
+        { label: "a⁄b", latex: "\\frac{a}{b}" }, { label: "x²", latex: "x^2" }, { label: "xⁿ", latex: "x^n" }, { label: "√x", latex: "\\sqrt{x}" },
         { label: "ⁿ√x", latex: "\\sqrt[n]{x}" }, { label: "xᵢ", latex: "x_i" }, { label: "xⁱʲ", latex: "x_i^j" }, { label: "|x|", latex: "\\left|x\\right|" }
       ]
     },

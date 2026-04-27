@@ -17,7 +17,9 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
       name: "Perus",
       symbols: [
         { label: "+", latex: "+" }, { label: "−", latex: "-" }, { label: "×", latex: "\\times " }, { label: "÷", latex: "\\div " },
-        { label: "=", latex: "=" }, { label: "≠", latex: "\\neq " }, { label: "≈", latex: "\\approx " }, { label: "±", latex: "\\pm " }
+        { label: "=", latex: "=" }, { label: "≠", latex: "\\neq " }, { label: "≈", latex: "\\approx " }, { label: "±", latex: "\\pm " },
+        { label: "⋅", latex: "\\cdot " }, { label: ", ", latex: "\\, " }, { label: "∓", latex: "\\mp " }, { label: ":", latex: ":" },
+        { label: "~%", latex: "~\\%" }, { label: "‰", latex: "~^\\text{{\\scriptscriptstyle 0}}\\!\\!/\\!_{\\text{{\\scriptscriptstyle 00}}}" }, { label: "∞", latex: "\\infty " }
       ]
     },
     {

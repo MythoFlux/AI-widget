@@ -58,6 +58,16 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
       ]
     },
     {
+      name: "Joukkoteoria ja logiikka",
+      symbols: [
+        { label: "kuuluu joukkoon", latex: "\\in" }, { label: "ei kuulu joukkoon", latex: "\\notin" },
+        { label: "osajoukko", latex: "\\subset" }, { label: "yhdiste", latex: "\\cup" }, { label: "leikkaus", latex: "\\cap" }, 
+        { label: "implikaatio", latex: "\\Rightarrow" }, { label: "ekvivalenssi", latex: "\\Leftrightarrow" }, { label: "Epäidenttisyys", latex: "\\not\\equiv" },
+        { label: "verrannollisuus", latex: "\\propto" }, { label: "yhtenevyys", latex: "\\cong" }, { label: "epäyhtenevyys", latex: "\\not\\cong" },
+        { label: "tilde", latex: "\\sim" }
+      ]
+    },
+    {
       name: "Operaattorit",
       symbols: [
         { label: "summa", latex: "\\sum_{i=1}^{n}" }, { label: "tulo", latex: "\\prod_{i=1}^{n}" }, { label: "integraali", latex: "\\int_{a}^{b}" }, 

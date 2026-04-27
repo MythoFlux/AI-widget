@@ -39,9 +39,9 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
       name: "Sulkeet ja pystyviivat",
       symbols: [
         { label: "skaalautuvat kaarisulkeet", latex: "\\left( x \\right)" }, { label: "skaalautuvat hakasulkeet", latex: "\\left[ x \\right]" }, 
-        { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left[ x \\left[" },
-        { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\right] x \\right]" },
-        { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\right] x \\left[" },
+        { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left[ x \\right[" },
+        { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left] x \\right]" },
+        { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left] x \\right[" },
         { label: "skaalautuvat aaltosulkeet", latex: "\\left\\{ x \\right\\}" }, { label: "skaalautuvat kulmasulkeet", latex: "\\left\\langle x \\right\\rangle" },
         { label: "erotin", latex: "A\\mid B" }, { label: "pystyviiva", latex: "\\vert" }, 
         { label: "skaalautuva normi", latex: "\\left\\Vert \\mathbf{a} \\right\\Vert" }, { label: "binomikerroin", latex: "\\binom{n}{k}" },
@@ -62,7 +62,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
       symbols: [
         { label: "kuuluu joukkoon", latex: "\\in" }, { label: "ei kuulu joukkoon", latex: "\\notin" },
         { label: "osajoukko", latex: "\\subset" }, { label: "yhdiste", latex: "\\cup" }, { label: "leikkaus", latex: "\\cap" }, 
-        { label: "implikaatio", latex: "\\Rightarrow" }, { label: "ekvivalenssi", latex: "\\Leftrightarrow" }, { label: "Epäidenttisyys", latex: "\\not\\equiv" },
+        { label: "implikaatio", latex: "\\Rightarrow" }, { label: "ekvivalenssi", latex: "\\Leftrightarrow" }, { label: "tyhjä joukko", latex: "\\varnothing" },
         { label: "verrannollisuus", latex: "\\propto" }, { label: "yhtenevyys", latex: "\\cong" }, { label: "epäyhtenevyys", latex: "\\not\\cong" },
         { label: "tilde", latex: "\\sim" }
       ]

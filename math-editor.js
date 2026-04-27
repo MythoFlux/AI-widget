@@ -16,20 +16,31 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
     {
       name: "Perus",
       symbols: [
-        { label: "+", latex: "+" }, { label: "−", latex: "-" }, { label: "⋅", latex: "\\cdot " }, { label: "×", latex: "\\times " }, 
-        { label: "÷", latex: "\\div " },
-        { label: "=", latex: "=" }, { label: "≠", latex: "\\neq " }, { label: "≈", latex: "\\approx " }, { label: "±", latex: "\\pm " }, 
-        { label: "∓", latex: "\\mp " }, { label: ":", latex: ":" },
-        { label: "%", latex: "~\\%" }, { label: "‰", latex: "~‰" }, { label: "∞", latex: "\\infty " }, { label: "pieni välilyönti", latex: "pieni\\, väli" }, 
-        { label: "keskikokoinen välilyönti", latex: "iso~väli" }, { label: "desimaalipilkku ilman välilyöntiä", latex: "a{,}b" }
+        { label: "plus", latex: "+" }, { label: "miinus", latex: "-" }, { label: "kertopiste", latex: "\\cdot " }, { label: "ristitulo", latex: "\\times " }, 
+        { label: "jakomerkki", latex: "\\div " },
+        { label: "yhtäsuuruus", latex: "=" }, { label: "erisuuruus", latex: "\\neq " }, { label: "suunnilleen", latex: "\\approx " }, { label: "plusmiinus", latex: "\\pm " }, 
+        { label: "miinusplus", latex: "\\mp " }, { label: "jakolasku", latex: ":" },
+        { label: "prosentti", latex: "~\\%" }, { label: "promille", latex: "~‰" }, { label: "ääretön", latex: "\\infty " }, 
+        { label: "pieni väli", latex: "a\\, b" },
+        { label: "keskikokoinen väli", latex: "a~b" }, { label: "desimaalipilkku ilman välilyöntiä", latex: "a{,}b" }
       ]
     },
     {
       name: "Murtoluvut & potenssit",
       symbols: [
-        { label: "\\frac{a}{b}", latex: "\\frac{a}{b}" }, { label: "xⁿ", latex: "x^n" }, { label: "√x", latex: "\\sqrt{x}" },
-        { label: "ⁿ√x", latex: "\\sqrt[n]{x}" }, { label: "xᵢ", latex: "x_i" }, { label: "xⁱʲ", latex: "x_i^j" }, { label: "|x|", latex: "\\left|x\\right|" },
-        { label: "", latex: "~_{a}^{b}X" }
+        { label: "murtoluku", latex: "\\frac{a}{b}" }, { label: "potenssimerkintä", latex: "x^n" }, { label: "neliöjuuri", latex: "\\sqrt{x}" },
+        { label: "yleinen juuri", latex: "\\sqrt[n]{x}" }, { label: "alaindeksi", latex: "x_i" }, { label: "ala- ja yläindeksi", latex: "x_i^j" }, 
+        { label: "|x|", latex: "\\left|x\\right|" }, { label: "vasen ala- ja yläindeksi", latex: "~_{a}^{b}X" }
+      ]
+    },
+    
+    {
+      name: "Sulkeet ja pystyviivat",
+      symbols: [
+        { label: "skaalautuvat kaarisulkeet", latex: "\\left( x \\right)" }, { label: "skaalautuvat hakasulkeet", latex: "\\left[ x \\right]" },
+        { label: "skaalautuvat aaltosulkeet", latex: "\\left{ x \\right}" }, { label: "skaalautuvat kulmasulkeet", latex: "\\left\\langle x \\right\\rangle" },
+        { label: "Erotin", latex: "A\\mid B" }, { label: "Pystyviiva", latex: "\\vert" }, 
+        { label: "skaalautuva normi", latex: "\\left\\Vert \\mathbf{a} \\right\\Vert" }
       ]
     },
     {
@@ -42,10 +53,10 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
     {
       name: "Ympäristöt",
       symbols: [
-        { label: "kohdistettu", latex: "\\begin{aligned}\na &= b + c \\\\\nd &= e - f\n\\end{aligned}" },
+        { label: "kohdistetut rivit", latex: "\\begin{aligned}\na &= b + c \\\\\nd &= e - f\n\\end{aligned}" },
         { label: "yhtälöpari", latex: "\\begin{cases}\nx + y = 1 \\\\\n2x - y = 3\n\\end{cases}" },
         { label: "matriisi", latex: "\\begin{bmatrix}\na & b \\\\\nc & d\n\\end{bmatrix}" },
-        { label: "teksti", latex: "\\text{pystyteksti}" }
+        { label: "teksti", latex: "\\text{T}" }
       ]
     },
     {

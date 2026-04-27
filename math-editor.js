@@ -84,7 +84,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
       symbols: [
         { label: "kohdistetut rivit", latex: "\\begin{aligned}\na &= b + c \\\\\nd &= e - f\n\\end{aligned}" },
         { label: "yhtälöpari", latex: "\\begin{cases}\nx + y = 1 \\\\\n2x - y = 3\n\\end{cases}" },
-        { label: "taulukko", latex: "\\begin{array}{l|l} a & b \\\\ \\hline c & d \end{array}" },
+        { label: "taulukko", latex: "\\begin{array}{l|l} a & b \\\\ \\hline c & d \\end{array}" },
         { label: "teksti", latex: "\\text{T}" }
       ]
     },
@@ -108,7 +108,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         {
       name: "Vektorit ja matriisit",
       symbols: [
-        { label: "nuolivektori", latex: "\\vec{\v}" }, { label: "lihavoitu vektori", latex: "\\mathbf{\v}" },
+        { label: "nuolivektori", latex: "\\vec{v}" }, { label: "lihavoitu vektori", latex: "\\mathbf{v}" },
         { label: "matriisi", latex: "\\begin{bmatrix}\na & b \\\\\nc & d\n\\end{bmatrix}" },
         { label: "determinantti", latex: "\\begin{vmatrix}a & b\\\\ c & d\\end{vmatrix}" }
       ]

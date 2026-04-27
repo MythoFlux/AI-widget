@@ -17,7 +17,9 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
       name: "Perus",
       symbols: [
         { label: "+", latex: "+" }, { label: "−", latex: "-" }, { label: "×", latex: "\\times " }, { label: "÷", latex: "\\div " },
-        { label: "=", latex: "=" }, { label: "≠", latex: "\\neq " }, { label: "≈", latex: "\\approx " }, { label: "±", latex: "\\pm " }
+        { label: "=", latex: "=" }, { label: "≠", latex: "\\neq " }, { label: "≈", latex: "\\approx " }, { label: "±", latex: "\\pm " },
+        { label: "⋅", latex: "\\cdot " }, { label: ", ", latex: "\\, " }, { label: "∓", latex: "\\mp " }, { label: ":", latex: ":" },
+        { label: "~%", latex: "~\\%" }, { label: "‰", latex: "~^\\text{{\\scriptscriptstyle 0}}\\!\\!/\\!_{\\text{{\\scriptscriptstyle 00}}}" }, { label: "∞", latex: "\\infty " }
       ]
     },
     {
@@ -45,8 +47,18 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
     {
       name: "Kreikkalaiset",
       symbols: [
-        { label: "α", latex: "\\alpha " }, { label: "β", latex: "\\beta " }, { label: "γ", latex: "\\gamma " }, { label: "Δ", latex: "\\Delta " },
-        { label: "π", latex: "\\pi " }, { label: "θ", latex: "\\theta " }, { label: "λ", latex: "\\lambda " }, { label: "Ω", latex: "\\Omega " }
+        { label: "α", latex: "\\alpha " }, { label: "β", latex: "\\beta " }, { label: "γ", latex: "\\gamma " }, { label: "δ", latex: "\\delta " },
+        { label: "ε", latex: "\\epsilon " }, { label: "ζ", latex: "\\zeta " }, { label: "η", latex: "\\eta " }, { label: "θ", latex: "\\theta " },
+        { label: "ι", latex: "\\iota " }, { label: "κ", latex: "\\kappa " }, { label: "λ", latex: "\\lambda " }, { label: "μ", latex: "\\mu " },
+        { label: "ν", latex: "\\nu " }, { label: "ξ", latex: "\\xi " }, { label: "ο", latex: "ο" }, { label: "π", latex: "\\pi " },
+        { label: "ρ", latex: "\\rho " }, { label: "σ", latex: "\\sigma " }, { label: "τ", latex: "\\tau " }, { label: "υ", latex: "\\upsilon " },
+        { label: "φ", latex: "\\phi " }, { label: "χ", latex: "\\chi " }, { label: "ψ", latex: "\\psi " }, { label: "ω", latex: "\\omega " },
+        { label: "Α", latex: "Α" }, { label: "Β", latex: "Β" }, { label: "Γ", latex: "\\Gamma " }, { label: "Δ", latex: "\\Delta " },
+        { label: "Ε", latex: "Ε" }, { label: "Ζ", latex: "Ζ" }, { label: "Η", latex: "Η" }, { label: "Θ", latex: "\\Theta " },
+        { label: "Ι", latex: "Ι" }, { label: "Κ", latex: "Κ" }, { label: "Λ", latex: "\\Lambda " }, { label: "Μ", latex: "Μ" },
+        { label: "Ν", latex: "Ν" }, { label: "Ξ", latex: "\\Xi " }, { label: "Ο", latex: "Ο" }, { label: "Π", latex: "\\Pi " },
+        { label: "Ρ", latex: "Ρ" }, { label: "Σ", latex: "\\Sigma " }, { label: "Τ", latex: "Τ" }, { label: "Υ", latex: "\\Upsilon " },
+        { label: "Φ", latex: "\\Phi " }, { label: "Χ", latex: "Χ" }, { label: "Ψ", latex: "\\Psi " }, { label: "Ω", latex: "\\Omega " }
       ]
     }
   ];

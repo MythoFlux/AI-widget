@@ -19,7 +19,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         { label: "+", latex: "+" }, { label: "−", latex: "-" }, { label: "×", latex: "\\times " }, { label: "÷", latex: "\\div " },
         { label: "=", latex: "=" }, { label: "≠", latex: "\\neq " }, { label: "≈", latex: "\\approx " }, { label: "±", latex: "\\pm " },
         { label: "⋅", latex: "\\cdot " }, { label: ", ", latex: "\\, " }, { label: "∓", latex: "\\mp " }, { label: ":", latex: ":" },
-        { label: "~%", latex: "~\\%" }, { label: "‰", latex: "~‰" }, { label: "∞", latex: "\\infty " }
+        { label: "%", latex: "~\\%" }, { label: "‰", latex: "~‰" }, { label: "∞", latex: "\\infty " }
       ]
     },
     {

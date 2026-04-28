@@ -21,9 +21,10 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         { label: "yhtäsuuruus", latex: "=" }, { label: "erisuuruus", latex: "\\neq " }, { label: "suunnilleen", latex: "\\approx " }, { label: "plusmiinus", latex: "\\pm " }, 
         { label: "miinusplus", latex: "\\mp " }, { label: "jakolasku", latex: ":" },
         { label: "prosentti", latex: "~\\%" }, { label: "promille", latex: "~‰" }, { label: "ääretön", latex: "\\infty " },
-        { label: "vektoriviiva", latex: "\\overline{a} " },
+        { label: "vektoriviiva", latex: "\\overline{a} " }, { label: "aste", latex: "\\°" },
         { label: "pieni väli", latex: "a\\, b" },
-        { label: "keskikokoinen väli", latex: "a~b" }, { label: "desimaalipilkku ilman välilyöntiä", latex: "a{,}b" }
+        { label: "välilyönti", latex: "a~b" }, { label: "desimaalipilkku ilman välilyöntiä", latex: "a{,}b" }
+        { label: "kolme pistettä", latex: "\\ldots" },
       ]
     },
     {
@@ -39,10 +40,11 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
       name: "Sulkeet ja pystyviivat",
       symbols: [
         { label: "skaalautuvat kaarisulkeet", latex: "\\left( x \\right)" }, { label: "skaalautuvat hakasulkeet", latex: "\\left[ x \\right]" }, 
+        { label: "skaalautuvat aaltosulkeet", latex: "\\left\\{ x \\right\\}" }, 
         { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left[ x \\right[" },
         { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left] x \\right]" },
         { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left] x \\right[" },
-        { label: "skaalautuvat aaltosulkeet", latex: "\\left\\{ x \\right\\}" }, { label: "skaalautuvat kulmasulkeet", latex: "\\left\\langle x \\right\\rangle" },
+        { label: "skaalautuvat kulmasulkeet", latex: "\\left\\langle x \\right\\rangle" },
         { label: "erotin", latex: "A\\mid B" }, { label: "pystyviiva", latex: "\\vert" }, 
         { label: "skaalautuva normi", latex: "\\left\\Vert \\mathbf{a} \\right\\Vert" }, { label: "binomikerroin", latex: "\\binom{n}{k}" },
       ]
@@ -54,17 +56,26 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         { label: "pienempi kuin", latex: "<" }, { label: "suurempi kuin", latex: ">" }, { label: "Paljon pienempi kuin", latex: "\\ll" }, 
         { label: "paljon suurempi kuin", latex: "\\gg" }, { label: "identtisyys", latex: "\\equiv" }, { label: "Epäidenttisyys", latex: "\\not\\equiv" },
         { label: "verrannollisuus", latex: "\\propto" }, { label: "yhtenevyys", latex: "\\cong" }, { label: "epäyhtenevyys", latex: "\\not\\cong" },
-        { label: "tilde", latex: "\\sim" }
+        { label: "tilde", latex: "\\sim" }, { label: "yhdistetty funktio", latex: "\\circ" },
       ]
     },
     {
-      name: "Joukkoteoria ja logiikka",
+      name: "Joukot, nuolet ja kulmat",
       symbols: [
         { label: "kuuluu joukkoon", latex: "\\in" }, { label: "ei kuulu joukkoon", latex: "\\notin" },
-        { label: "osajoukko", latex: "\\subset" }, { label: "yhdiste", latex: "\\cup" }, { label: "leikkaus", latex: "\\cap" }, 
-        { label: "implikaatio", latex: "\\Rightarrow" }, { label: "ekvivalenssi", latex: "\\Leftrightarrow" }, { label: "tyhjä joukko", latex: "\\varnothing" },
-        { label: "verrannollisuus", latex: "\\propto" }, { label: "yhtenevyys", latex: "\\cong" }, { label: "epäyhtenevyys", latex: "\\not\\cong" },
-        { label: "tilde", latex: "\\sim" }
+        { label: "osajoukko", latex: "\\subset" }, { label: "ei osajoukko", latex: "\\not\\subset" }, { label: "yhdiste", latex: "\\cup" }, 
+        { label: "leikkaus", latex: "\\cap" }, { label: "joukkojen erotus", latex: "\\setminus" },
+        { label: "tai", latex: "\\vee" }, { label: "ja", latex: "\\wedge" }, { label: "negaatio", latex: "\\neg" },
+        { label: "olemassaolo", latex: "\\exists" }, { label: "kaikille", latex: "\\forall" },
+        { label: "tyhjä joukko", latex: "\\varnothing" }, { label: "luonnolliset luvut", latex: "\\mathbb{N}" },
+        { label: "kokonaisluvut", latex: "\\mathbb{Z}" }, { label: "rationaaliluvut", latex: "\\mathbb{Q}" },
+        { label: "reaaliluvut", latex: "\\mathbb{R}" }, { label: "kompleksiluvut", latex: "\\mathbb{C}" }, { label: "algebralliset luvut", latex: "\\\\mathbb{A}" },
+        { label: "implikaatio", latex: "\\Rightarrow" }, { label: "ekvivalenssi", latex: "\\Leftrightarrow" },
+        { label: "nuoli oikealle", latex: "\\rightarrow" }, { label: "nuoli vasemmalle", latex: "\\leftarrow" }, { label: "nuoli ylös", latex: "\\uparrow" },
+        { label: "nuoli alas", latex: "\\downarrow" }, { label: "nuoli yläviistoon", latex: "\\nearrow" }, { label: "nuoli alaviistoon", latex: "\\searrow" },
+        { label: "kaksipäinen nuoli", latex: "\\leftrightarrow" }, { label: "tasapainonuoli", latex: "\\xrightleftharpoons[a]{b}" },
+        { label: "vastakkaissuuntaisuus", latex: "\\rightleftarrows" }, { label: "yhdensuuntaisuus", latex: "\\parallel" },
+        { label: "avaruuskulma", latex: "\\sphericalangle" }, { label: "kulma", latex: "\\angle" }, { label: "kohtisuoruus", latex: "\\perp" },
       ]
     },
     {
@@ -108,7 +119,8 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         {
       name: "Vektorit ja matriisit",
       symbols: [
-        { label: "nuolivektori", latex: "\\vec{v}" }, { label: "lihavoitu vektori", latex: "\\mathbf{v}" },
+        { label: "nuolivektori", latex: "\\vec{v}" }, { label: "nuolivektori vasemmalle", latex: "\\overleftarrow{v}" },
+        { label: "nuolivektori alapuolella", latex: "\\underrightarrow{v}" }, { label: "lihavoitu vektori", latex: "\\mathbf{v}" },
         { label: "matriisi", latex: "\\begin{bmatrix}\na & b \\\\\nc & d\n\\end{bmatrix}" },
         { label: "determinantti", latex: "\\begin{vmatrix}a & b\\\\ c & d\\end{vmatrix}" }
       ]

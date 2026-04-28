@@ -35,17 +35,35 @@ function isValidDataImageUrl(value) {
   return /^data:image\/[a-zA-Z0-9.+-]+;base64,[a-zA-Z0-9+/=\s]+$/.test(value);
 }
 
+function isValidStateSummary(value) {
+  if (value == null) return true;
+  if (typeof value !== "string") return false;
+  return value.length <= 4000;
+}
+
 function toResponsesInput(messages, options = {}) {
-  const { latestUserImage } = options;
+  const { latestUserImage, stateSummary } = options;
   const tutorInstruction = {
-    role: "system",
+    role: "developer",
     content: [
       {
         type: "input_text",
-        text: "Toimit opiskelijaa auttavana opettajana matematiikan, fysiikan ja kemian tehtävissä. Auta vaiheittain: selitä ajattelu ja välivaiheet selkeästi, ja vältä antamasta pelkkää loppuvastausta ellei käyttäjä pyydä sitä erikseen. Kun kirjoitat matemaattisia lausekkeita, käytä LaTeX-muotoa. Käytä inline-kaavoihin merkintää $...$ ja erillisille riveille merkintää $$...$$. Älä käytä pelkkää Unicode-merkintää silloin, kun lauseke voidaan ilmaista LaTeXilla."
+        text: "Toimit opiskelijaa ohjaavana opettajana matematiikan, fysiikan ja kemian tehtävissä. Tavoite ei ole ratkaista tehtävää opiskelijan puolesta, vaan auttaa opiskelijaa etenemään itse. Anna vain yksi seuraava vihje kerrallaan. Esitä ohjaavia kysymyksiä. Älä anna koko ratkaisua yhdellä kertaa. Jos opiskelija tekee virheen, älä heti anna valmista korjausta, vaan ohjaa häntä huomaamaan virhe. Voit muistuttaa kaavasta tai periaatteesta, mutta älä sovella sitä loppuun asti opiskelijan puolesta. Jos opiskelija pyytää koko ratkaisua, yritä ensin tarjota vihje. Jos hän edelleen pyytää ratkaisua, anna ratkaisu vaiheittain. Kuvatehtävissä tulkitse ensin kuvassa oleva tehtävä. Jos kuva on epäselvä, pyydä tarkennusta äläkä arvaa. Käytä LaTeXia: inline-kaavat muodossa $...$ ja erilliset kaavarivit muodossa $$...$$. Pidä vastaukset lyhyinä, selkeinä ja ohjaavina. Älä aloita ohjausta alusta, jos keskustelun tilanne kertoo, missä ollaan menossa."
       }
     ]
   };
+
+  const summaryInstruction = stateSummary
+    ? {
+      role: "developer",
+      content: [
+        {
+          type: "input_text",
+          text: `Nykyinen tilanne tehtävänratkaisussa:\n${stateSummary}`
+        }
+      ]
+    }
+    : null;
 
   const lastUserIndex = (() => {
     for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -76,7 +94,9 @@ function toResponsesInput(messages, options = {}) {
     };
   });
 
-  return [tutorInstruction, ...history];
+  const input = [tutorInstruction];
+  if (summaryInstruction) input.push(summaryInstruction);
+  return [...input, ...history];
 }
 
 module.exports = async function handler(req, res) {
@@ -103,6 +123,10 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: "latestUserImage pitää olla kelvollinen data:image/*;base64 URL." });
   }
 
+  if (!isValidStateSummary(body.stateSummary)) {
+    return res.status(400).json({ error: "stateSummary pitää olla merkkijono, enintään 4000 merkkiä." });
+  }
+
   const validMessages = body.messages.filter(isValidMessage);
   if (validMessages.length === 0) {
     return res.status(400).json({ error: "messages-taulukossa pitää olla vähintään yksi kelvollinen viesti." });
@@ -117,7 +141,10 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-5-mini",
-        input: toResponsesInput(validMessages, { latestUserImage: body.latestUserImage || null })
+        input: toResponsesInput(validMessages, {
+          latestUserImage: body.latestUserImage || null,
+          stateSummary: body.stateSummary || ""
+        })
       })
     });
 

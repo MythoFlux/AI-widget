@@ -1,6 +1,3 @@
-    import { Editor, Node, mergeAttributes } from "https://esm.sh/@tiptap/core@2.11.5";
-    import StarterKit from "https://esm.sh/@tiptap/starter-kit@2.11.5";
-    import Placeholder from "https://esm.sh/@tiptap/extension-placeholder@2.11.5";
     import { createMathEditorModule } from "./math-editor.js";
 
     const STORAGE_KEY = "ai-chat-history";
@@ -38,8 +35,6 @@
     let pendingScreenshotName = "";
 
     const mathEditorModule = createMathEditorModule({
-      Node,
-      mergeAttributes,
       elements: {
         mathEditorModalEl,
         mathSymbolSearchEl,
@@ -71,33 +66,33 @@
       return true;
     }
 
-    const editor = new Editor({
-      element: promptEditorEl,
-      extensions: [
-        StarterKit.configure({
-          heading: false,
-          bulletList: false,
-          orderedList: false,
-          codeBlock: false,
-          blockquote: false,
-          horizontalRule: false
-        }),
-        Placeholder.configure({
-          placeholder: "Kirjoita viesti tähän… Lisää kaava painikkeella (rivinsisäinen tai omalla rivillään)."
-        }),
-        mathEditorModule.InlineMath,
-        mathEditorModule.BlockMath
-      ],
-      content: "<p></p>",
-      editorProps: {
-        handlePaste(view, event) {
-          if (handleImagePaste(event)) {
-            return true;
-          }
-          return false;
-        }
+    const editor = {
+      getText() {
+        return promptEditorEl.value || "";
+      },
+      clearContent() {
+        promptEditorEl.value = "";
+      },
+      focus() {
+        promptEditorEl.focus();
+      },
+      insertMathAtCursor(latex, mode = "inline") {
+        const token = mode === "display" ? `$$${latex}$$` : `$${latex}$`;
+        const start = promptEditorEl.selectionStart ?? promptEditorEl.value.length;
+        const end = promptEditorEl.selectionEnd ?? promptEditorEl.value.length;
+        const prefix = promptEditorEl.value.slice(0, start);
+        const suffix = promptEditorEl.value.slice(end);
+        const padBefore = mode === "display" && prefix && !prefix.endsWith("\n") ? "\n" : "";
+        const padAfter = mode === "display" && suffix && !suffix.startsWith("\n") ? "\n" : "";
+        promptEditorEl.value = `${prefix}${padBefore}${token}${padAfter}${suffix}`;
+        const nextCursor = (prefix + padBefore + token).length;
+        promptEditorEl.focus();
+        promptEditorEl.setSelectionRange(nextCursor, nextCursor);
       }
-    });
+    };
+
+    promptEditorEl.placeholder = "Kirjoita viesti tähän… Lisää kaava painikkeella (rivinsisäinen tai omalla rivillään).";
+    promptEditorEl.addEventListener("paste", handleImagePaste);
 
     mathEditorModule.attachEditor(editor);
 
@@ -181,74 +176,7 @@
 
     // Serialisointi OpenAI:lle: teksti + inlineMath->$...$ + blockMath->$$...$$.
     function serializeEditorForBackend() {
-      const node = editor.state.doc;
-      const chunks = [];
-
-      function walk(currentNode) {
-        if (currentNode.type.name === "text") {
-          chunks.push(currentNode.text || "");
-          return;
-        }
-        if (currentNode.type.name === "hardBreak") {
-          chunks.push("\n");
-          return;
-        }
-        if (currentNode.type.name === "inlineMath") {
-          chunks.push(`$${currentNode.attrs.latex || ""}$`);
-          return;
-        }
-        if (currentNode.type.name === "blockMath") {
-          chunks.push(`\n$$${currentNode.attrs.latex || ""}$$\n`);
-          return;
-        }
-
-        currentNode.content?.forEach((childNode) => walk(childNode));
-        if (currentNode.type.name === "paragraph") {
-          chunks.push("\n");
-        }
-      }
-
-      walk(node);
-      return chunks.join("").replace(/\n{3,}/g, "\n\n").trim();
-    }
-
-    // Mahdollinen deserialisointi myöhempää editorin palautusta varten.
-    function deserializeTextToEditorDoc(text) {
-      const docContent = [];
-      const blockRegex = /\$\$([\s\S]+?)\$\$/g;
-      let last = 0;
-      let blockMatch;
-
-      function pushInlineParagraph(segment) {
-        if (!segment) return;
-        const inlineContent = [];
-        const inlineRegex = /\$([^\n$]+?)\$/g;
-        let inlineLast = 0;
-        let inlineMatch;
-        while ((inlineMatch = inlineRegex.exec(segment)) !== null) {
-          if (inlineMatch.index > inlineLast) {
-            inlineContent.push({ type: "text", text: segment.slice(inlineLast, inlineMatch.index) });
-          }
-          inlineContent.push({ type: "inlineMath", attrs: { latex: inlineMatch[1] } });
-          inlineLast = inlineMatch.index + inlineMatch[0].length;
-        }
-        if (inlineLast < segment.length) {
-          inlineContent.push({ type: "text", text: segment.slice(inlineLast) });
-        }
-        docContent.push({ type: "paragraph", content: inlineContent.length ? inlineContent : [{ type: "text", text: "" }] });
-      }
-
-      while ((blockMatch = blockRegex.exec(text)) !== null) {
-        pushInlineParagraph(text.slice(last, blockMatch.index).trim());
-        docContent.push({ type: "blockMath", attrs: { latex: blockMatch[1] || "" } });
-        last = blockMatch.index + blockMatch[0].length;
-      }
-      pushInlineParagraph(text.slice(last).trim());
-
-      if (docContent.length === 0) {
-        docContent.push({ type: "paragraph" });
-      }
-      return { type: "doc", content: docContent };
+      return editor.getText().trim();
     }
 
     function saveHistory() {
@@ -410,7 +338,7 @@
         : message;
 
       addMessageToHistory("user", userVisibleMessage);
-      editor.commands.clearContent(true);
+      editor.clearContent();
       sendButton.disabled = true;
       clearHistoryButton.disabled = true;
       screenshotInput.disabled = true;
@@ -452,7 +380,7 @@
         clearHistoryButton.disabled = false;
         screenshotInput.disabled = false;
         clearScreenshotButton.disabled = false;
-        editor.commands.focus();
+        editor.focus();
       }
     }
 
@@ -467,7 +395,7 @@
       messagesEl.replaceChildren(createMessageElement(defaultInitialMessage));
       messagesEl.scrollTop = messagesEl.scrollHeight;
       setStatus("Keskustelu tyhjennetty.");
-      editor.commands.focus();
+      editor.focus();
     }
 
     function setupKnownNonAppWarningFilter() {
@@ -496,7 +424,6 @@
       clearPendingScreenshot();
       setStatus("Kuvakaappaus poistettu.");
     });
-    document.addEventListener("paste", handleImagePaste);
 
     promptEditorEl.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
@@ -510,5 +437,5 @@
     saveHistory();
     renderHistory();
     mathEditorModule.renderMathSymbolPalette();
-    editor.commands.focus();
+    editor.focus();
   

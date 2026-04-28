@@ -1,0 +1,450 @@
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --border: #dde3ee;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --user: #dbeafe;
+      --assistant: #ecfeef;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --error: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .chat-app {
+      width: min(900px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgb(15 23 42 / 8%);
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(120deg, #eef2ff, #f8fafc);
+    }
+
+    h1 { margin: 0; font-size: 1.6rem; }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .messages {
+      height: 360px;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #fcfdff;
+    }
+
+    .message {
+      padding: 12px 14px;
+      border-radius: 12px;
+      max-width: min(75ch, 90%);
+      line-height: 1.45;
+      border: 1px solid transparent;
+    }
+    .message-content { white-space: pre-wrap; }
+
+    .message .label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.86rem;
+      color: #334155;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: var(--user);
+      border-color: #bfdbfe;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: var(--assistant);
+      border-color: #bbf7d0;
+    }
+
+    .composer {
+      border-top: 1px solid var(--border);
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .message-editor {
+      width: 100%;
+      min-height: 84px;
+      max-height: 180px;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font: inherit;
+      line-height: 1.4;
+      overflow-y: auto;
+      background: #fff;
+    }
+
+    .message-editor:focus-within {
+      outline: 2px solid #93c5fd;
+      outline-offset: 1px;
+      border-color: #93c5fd;
+    }
+
+    .message-editor .ProseMirror {
+      min-height: 58px;
+      outline: none;
+      white-space: pre-wrap;
+    }
+
+    .message-editor .ProseMirror p {
+      margin: 0.35em 0;
+    }
+
+    .message-editor .ProseMirror p:first-child {
+      margin-top: 0;
+    }
+
+    .message-editor .ProseMirror p.is-editor-empty:first-child::before {
+      content: attr(data-placeholder);
+      float: left;
+      color: var(--muted);
+      pointer-events: none;
+      height: 0;
+    }
+
+    .math-node {
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      border-radius: 6px;
+      padding: 2px 6px;
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.9em;
+      vertical-align: middle;
+      cursor: pointer;
+    }
+
+    .math-node.math-block {
+      display: block;
+      width: 100%;
+      margin: 6px 0;
+      padding: 10px;
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      overflow-x: auto;
+    }
+
+    .math-node.math-error {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #7f1d1d;
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 0.9rem;
+      min-height: 1.2rem;
+    }
+
+    .status.error { color: var(--error); }
+
+    .attachment-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .attachment-label {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .attachment-preview {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px;
+      max-width: 220px;
+      background: #fff;
+    }
+
+    .attachment-preview img {
+      display: block;
+      width: 100%;
+      max-height: 140px;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+
+    .ghost-button {
+      background: transparent;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+    }
+
+    .ghost-button:hover {
+      background: #f1f5f9;
+    }
+    .math-button {
+      background: #0f766e;
+    }
+
+    .math-button:hover {
+      background: #0d5f59;
+    }
+
+    .math-editor-modal {
+      position: fixed;
+      inset: 0;
+      background: rgb(15 23 42 / 35%);
+      display: grid;
+      place-items: center;
+      z-index: 30;
+      padding: 16px;
+    }
+
+    .math-editor-modal[hidden] { display: none; }
+
+    .math-editor-panel {
+      width: min(1120px, 100%);
+      max-height: calc(100vh - 32px);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgb(15 23 42 / 18%);
+    }
+
+    .math-editor-help {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .math-editor-layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.1fr) minmax(260px, 1fr) minmax(260px, 1fr);
+      gap: 12px;
+      min-height: 400px;
+      height: min(560px, calc(100vh - 260px));
+      overflow: hidden;
+    }
+
+    .math-pane {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f8fafc;
+      padding: 12px;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .math-pane h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: #334155;
+    }
+
+    .symbol-search {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #fff;
+      font: inherit;
+    }
+
+    .symbol-categories {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 2px;
+    }
+
+    .symbol-group h4 {
+      margin: 0 0 6px;
+      font-size: 0.84rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .symbol-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+      gap: 6px;
+    }
+
+    .symbol-button {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      color: #0f172a;
+      min-height: 46px;
+      display: grid;
+      place-items: center;
+      padding: 6px 8px;
+      font-size: 1.05rem;
+      line-height: 1.15;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .symbol-button .katex {
+      max-width: 100%;
+      font-size: 1.05em;
+    }
+
+    .symbol-button:hover {
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+
+    .math-preview-render {
+      flex: 1;
+      min-height: 0;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 10px;
+      background: #f8fafc;
+      overflow: auto;
+    }
+
+    .math-latex-output {
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      resize: vertical;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      background: #fff;
+      color: #0f172a;
+    }
+
+    .math-latex-output:focus,
+    .symbol-search:focus {
+      outline: 2px solid #93c5fd;
+      outline-offset: 1px;
+      border-color: #93c5fd;
+    }
+
+    .math-mode-toggle {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.92rem;
+      color: #334155;
+      align-items: center;
+    }
+
+    .math-mode-toggle label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .math-example {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font: inherit;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--accent-hover); }
+
+    .clear-button {
+      background: #64748b;
+    }
+
+    .clear-button:hover {
+      background: #475569;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 10px; }
+      .messages { height: 50vh; }
+      .actions { flex-direction: column; align-items: stretch; }
+      .button-group { flex-direction: column; width: 100%; }
+      button { width: 100%; }
+      .math-editor-panel { max-height: calc(100vh - 20px); }
+      .math-editor-layout {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        height: auto;
+        overflow: auto;
+      }
+      .math-pane {
+        min-height: 220px;
+      }
+      .math-latex-output {
+        min-height: 220px;
+      }
+    }
+  

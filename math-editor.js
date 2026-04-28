@@ -21,7 +21,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         { label: "yhtäsuuruus", latex: "=" }, { label: "erisuuruus", latex: "\\neq " }, { label: "suunnilleen", latex: "\\approx " }, { label: "plusmiinus", latex: "\\pm " }, 
         { label: "miinusplus", latex: "\\mp " }, { label: "jakolasku", latex: ":" },
         { label: "prosentti", latex: "~\\%" }, { label: "promille", latex: "~‰" }, { label: "ääretön", latex: "\\infty " },
-        { label: "vektoriviiva", latex: "\\overline{a} " }, { label: "aste", latex: "\\°" },
+        { label: "vektoriviiva", latex: "\\overline{a} " }, { label: "aste", latex: "\\°" }, { label: "luonnollinen eksponenttifunktio", latex: "\\mathrm{e}^x" },
         { label: "pieni väli", latex: "a\\, b" },
         { label: "välilyönti", latex: "a~b" }, { label: "desimaalipilkku ilman välilyöntiä", latex: "a{,}b" }
         { label: "kolme pistettä", latex: "\\ldots" },

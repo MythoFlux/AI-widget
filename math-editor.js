@@ -23,8 +23,8 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         { label: "prosentti", latex: "~\\%" }, { label: "promille", latex: "~‰" }, { label: "ääretön", latex: "\\infty " },
         { label: "vektoriviiva", latex: "\\overline{a} " }, { label: "aste", latex: "\\°" }, { label: "luonnollinen eksponenttifunktio", latex: "\\mathrm{e}^x" },
         { label: "pieni väli", latex: "a\\, b" },
-        { label: "välilyönti", latex: "a~b" }, { label: "desimaalipilkku ilman välilyöntiä", latex: "a{,}b" }
-        { label: "kolme pistettä", latex: "\\ldots" },
+        { label: "välilyönti", latex: "a~b" }, { label: "desimaalipilkku ilman välilyöntiä", latex: "a{,}b" },
+        { label: "kolme pistettä", latex: "\\ldots" }
       ]
     },
     {
@@ -35,7 +35,6 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         { label: "|x|", latex: "\\left|x\\right|" }, { label: "vasen ala- ja yläindeksi", latex: "~_{a}^{b}X" }
       ]
     },
-    
     {
       name: "Sulkeet ja pystyviivat",
       symbols: [
@@ -46,7 +45,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left] a,b \\right[" },
         { label: "skaalautuvat kulmasulkeet", latex: "\\left\\langle x \\right\\rangle" },
         { label: "erotin", latex: "A\\mid B" }, { label: "pystyviiva", latex: "\\vert" }, 
-        { label: "skaalautuva normi", latex: "\\left\\Vert \\mathbf{a} \\right\\Vert" }, { label: "binomikerroin", latex: "\\binom{n}{k}" },
+        { label: "skaalautuva normi", latex: "\\left\\Vert \\mathbf{a} \\right\\Vert" }, { label: "binomikerroin", latex: "\\binom{n}{k}" }
       ]
     },
     {
@@ -56,7 +55,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         { label: "pienempi kuin", latex: "<" }, { label: "suurempi kuin", latex: ">" }, { label: "Paljon pienempi kuin", latex: "\\ll" }, 
         { label: "paljon suurempi kuin", latex: "\\gg" }, { label: "identtisyys", latex: "\\equiv" }, { label: "Epäidenttisyys", latex: "\\not\\equiv" },
         { label: "verrannollisuus", latex: "\\propto" }, { label: "yhtenevyys", latex: "\\cong" }, { label: "epäyhtenevyys", latex: "\\not\\cong" },
-        { label: "tilde", latex: "\\sim" }, { label: "yhdistetty funktio", latex: "\\circ" },
+        { label: "tilde", latex: "\\sim" }, { label: "yhdistetty funktio", latex: "\\circ" }
       ]
     },
     {
@@ -75,7 +74,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         { label: "nuoli alas", latex: "\\downarrow" }, { label: "nuoli yläviistoon", latex: "\\nearrow" }, { label: "nuoli alaviistoon", latex: "\\searrow" },
         { label: "kaksipäinen nuoli", latex: "\\leftrightarrow" }, { label: "tasapainonuoli", latex: "\\xrightleftharpoons[a]{b}" },
         { label: "vastakkaissuuntaisuus", latex: "\\rightleftarrows" }, { label: "yhdensuuntaisuus", latex: "\\parallel" },
-        { label: "avaruuskulma", latex: "\\sphericalangle" }, { label: "kulma", latex: "\\angle" }, { label: "kohtisuoruus", latex: "\\perp" },
+        { label: "avaruuskulma", latex: "\\sphericalangle" }, { label: "kulma", latex: "\\angle" }, { label: "kohtisuoruus", latex: "\\perp" }
       ]
     },
     {
@@ -106,18 +105,19 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
     {
       name: "Kreikkalaiset",
       symbols: [
-        { label: "α", latex: "\\alpha " }, { label: "β", latex: "\\beta " }, { label: "γ", latex: "\\gamma " }, { label: "δ", latex: "\\delta " },
-        { label: "ε", latex: "\\epsilon " }, { label: "ζ", latex: "\\zeta " }, { label: "η", latex: "\\eta " }, { label: "θ", latex: "\\theta " },
-        { label: "ι", latex: "\\iota " }, { label: "κ", latex: "\\kappa " }, { label: "λ", latex: "\\lambda " }, { label: "μ", latex: "\\mu " },
-        { label: "ν", latex: "\\nu " }, { label: "ξ", latex: "\\xi " }, { label: "ο", latex: "ο" }, { label: "π", latex: "\\pi " },
-        { label: "ρ", latex: "\\rho " }, { label: "σ", latex: "\\sigma " }, { label: "τ", latex: "\\tau " }, { label: "υ", latex: "\\upsilon " },
-        { label: "φ", latex: "\\phi " }, { label: "χ", latex: "\\chi " }, { label: "ψ", latex: "\\psi " }, { label: "ω", latex: "\\omega " },
-        { label: "Α", latex: "Α" }, { label: "Β", latex: "Β" }, { label: "Γ", latex: "\\Gamma " }, { label: "Δ", latex: "\\Delta " },
-        { label: "Ε", latex: "Ε" }, { label: "Ζ", latex: "Ζ" }, { label: "Η", latex: "Η" }, { label: "Θ", latex: "\\Theta " },
-        { label: "Ι", latex: "Ι" }, { label: "Κ", latex: "Κ" }, { label: "Λ", latex: "\\Lambda " }, { label: "Μ", latex: "Μ" },
-        { label: "Ν", latex: "Ν" }, { label: "Ξ", latex: "\\Xi " }, { label: "Ο", latex: "Ο" }, { label: "Π", latex: "\\Pi " },
-        { label: "Ρ", latex: "Ρ" }, { label: "Σ", latex: "\\Sigma " }, { label: "Τ", latex: "Τ" }, { label: "Υ", latex: "\\Upsilon " },
-        { label: "Φ", latex: "\\Phi " }, { label: "Χ", latex: "Χ" }, { label: "Ψ", latex: "\\Psi " }, { label: "Ω", latex: "\\Omega " }
+        { label: "alfa", latex: "\\alpha " }, { label: "beeta", latex: "\\beta " }, { label: "gamma", latex: "\\gamma " }, { label: "delta", latex: "\\delta " },
+        { label: "epsilon", latex: "\\epsilon " }, { label: "zeeta", latex: "\\zeta " }, { label: "eeta", latex: "\\eta " }, { label: "theeta", latex: "\\theta " },
+        { label: "ioota", latex: "\\iota " }, { label: "kappa", latex: "\\kappa " }, { label: "lambda", latex: "\\lambda " }, { label: "myy", latex: "\\mu " },
+        { label: "nyy", latex: "\\nu " }, { label: "ksii", latex: "\\xi " }, { label: "omikron", latex: "ο" }, { label: "pii", latex: "\\pi " },
+        { label: "rhoo", latex: "\\rho " }, { label: "sigma", latex: "\\sigma " }, { label: "loppusigma", latex: "\\varsigma " }, { label: "tau", latex: "\\tau " }, 
+        { label: "ypsilon", latex: "\\upsilon " }, { label: "fii", latex: "\\phi " }, { label: "vaihtoehtoinen fii", latex: "\\phi " },
+        { label: "khii", latex: "\\chi " }, { label: "psii", latex: "\\psi " }, { label: "oomega", latex: "\\omega " },
+        { label: "Alfa", latex: "Α" }, { label: "Beeta", latex: "Β" }, { label: "Gamma", latex: "\\Gamma " }, { label: "Delta", latex: "\\Delta " },
+        { label: "Epsilon", latex: "Ε" }, { label: "Ζeeta", latex: "Ζ" }, { label: "Eeta", latex: "Η" }, { label: "Theeta", latex: "\\Theta " },
+        { label: "Ioota", latex: "Ι" }, { label: "Κappa", latex: "Κ" }, { label: "Lambda", latex: "\\Lambda " }, { label: "Μyy", latex: "Μ" },
+        { label: "Νyy", latex: "Ν" }, { label: "Ksii", latex: "\\Xi " }, { label: "Οmikron", latex: "Ο" }, { label: "Pii", latex: "\\Pi " },
+        { label: "Rhoo", latex: "Ρ" }, { label: "Sigma", latex: "\\Sigma " }, { label: "Τau", latex: "Τ" }, { label: "Ypsilon", latex: "\\Upsilon " },
+        { label: "Fii", latex: "\\Phi " }, { label: "Khii", latex: "Χ" }, { label: "Psii", latex: "\\Psi " }, { label: "Oomega", latex: "\\Omega " }
       ]
     },
         {
@@ -133,7 +133,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
       name: "Valmiit pohjat",
       symbols: [
         { label: "toisen asteen yhtälön ratkaisukaava", latex: "x=\\frac{-b\pm\\sqrt{b^2-4ac}}{2a}" },
-        { label: "määrätty integraali", latex: "\\int_a^b f(x)\,\\text{d}x" },
+        { label: "määrätty integraali", latex: "\\int_a^b f(x)\,\\text{d}x" }
       ]
     }
   ];

@@ -4,6 +4,7 @@
     import { createMathEditorModule } from "./math-editor.js";
 
     const STORAGE_KEY = "ai-chat-history";
+    const SUMMARY_STORAGE_KEY = "ai-chat-state-summary";
     const MAX_MESSAGES_FOR_BACKEND = 20;
 
     const messagesEl = document.getElementById("messages");
@@ -32,6 +33,7 @@
     };
 
     let conversationHistory = [];
+    let stateSummary = "";
     let pendingScreenshotDataUrl = "";
     let pendingScreenshotName = "";
 
@@ -253,6 +255,10 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(conversationHistory));
     }
 
+    function saveStateSummary() {
+      localStorage.setItem(SUMMARY_STORAGE_KEY, stateSummary);
+    }
+
     function loadHistory() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -279,6 +285,15 @@
       }
     }
 
+    function loadStateSummary() {
+      try {
+        const rawSummary = localStorage.getItem(SUMMARY_STORAGE_KEY);
+        stateSummary = typeof rawSummary === "string" ? rawSummary : "";
+      } catch {
+        stateSummary = "";
+      }
+    }
+
     function addMessageToHistory(role, content, options = {}) {
       const includeInModelContext = options.includeInModelContext !== false;
       conversationHistory.push({ role, content, includeInModelContext });
@@ -292,6 +307,30 @@
         .map((message) => ({ role: message.role, content: message.content }));
 
       return messagesForModel.slice(-MAX_MESSAGES_FOR_BACKEND);
+    }
+
+    async function updateStateSummary(previousSummary, latestUserMessage, latestAssistantReply) {
+      const response = await fetch("/api/state-summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          previousSummary,
+          latestUserMessage,
+          latestAssistantReply
+        })
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || "Tilayhteenvedon päivitys epäonnistui.");
+      }
+
+      if (typeof data.updatedSummary !== "string") {
+        throw new Error("Tilayhteenvedon vastaus oli virheellinen.");
+      }
+
+      stateSummary = data.updatedSummary;
+      saveStateSummary();
     }
 
     function setStatus(text, isError = false) {
@@ -379,12 +418,14 @@
       setStatus("Ladataan...");
 
       try {
+        const previousSummary = stateSummary;
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messages: buildMessagesForBackend(),
-            latestUserImage: pendingScreenshotDataUrl || null
+            latestUserImage: pendingScreenshotDataUrl || null,
+            stateSummary
           })
         });
 
@@ -397,6 +438,12 @@
         addMessageToHistory("assistant", data.reply || "(Tyhjä vastaus)");
         setStatus("");
         clearPendingScreenshot();
+
+        try {
+          await updateStateSummary(previousSummary, userVisibleMessage, data.reply || "(Tyhjä vastaus)");
+        } catch (summaryError) {
+          console.error("State summaryn päivitys epäonnistui:", summaryError);
+        }
       } catch (error) {
         setStatus(`Virhe: ${error.message}`, true);
         addMessageToHistory("assistant", `⚠️ Virhe: ${error.message}`);
@@ -415,6 +462,8 @@
 
       conversationHistory = [defaultInitialMessage];
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(SUMMARY_STORAGE_KEY);
+      stateSummary = "";
       messagesEl.replaceChildren(createMessageElement(defaultInitialMessage));
       messagesEl.scrollTop = messagesEl.scrollHeight;
       setStatus("Keskustelu tyhjennetty.");
@@ -457,6 +506,7 @@
     });
 
     loadHistory();
+    loadStateSummary();
     saveHistory();
     renderHistory();
     mathEditorModule.renderMathSymbolPalette();

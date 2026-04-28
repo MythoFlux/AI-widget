@@ -469,7 +469,7 @@
 
     <section class="composer" aria-label="Viestin kirjoitus">
       <label for="prompt-editor">Kirjoita viesti</label>
-      <div id="prompt-editor" class="message-editor" title="Kirjoita tekstiä ja lisää sekaan inline- tai block-kaavoja."></div>
+      <div id="prompt-editor" class="message-editor" title="Kirjoita tekstiä ja lisää sekaan rivinsisäisiä tai omalla rivillään olevia kaavoja."></div>
       <div class="attachment-row" aria-label="Kuvakaappauksen liittäminen">
         <label for="screenshot" class="attachment-label">Lisää kuvakaappaus (PNG/JPG/WebP) tai liitä Ctrl+V</label>
         <input id="screenshot" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
@@ -495,8 +495,8 @@
       <p class="math-editor-help">Valitse merkkejä vasemmalta, näe esikatselu keskellä ja muokkaa LaTeXia oikealla.</p>
       <div class="math-mode-toggle">
         <strong>Näyttötapa:</strong>
-        <label><input type="radio" name="math-mode" value="inline" checked /> Inline</label>
-        <label><input type="radio" name="math-mode" value="display" /> Block</label>
+        <label><input type="radio" name="math-mode" value="inline" checked /> Rivinsisäinen</label>
+        <label><input type="radio" name="math-mode" value="display" /> Omalla rivillään</label>
       </div>
       <div class="math-editor-layout">
         <section class="math-pane" aria-label="Symbolipaneeli">
@@ -585,7 +585,7 @@
           horizontalRule: false
         }),
         Placeholder.configure({
-          placeholder: "Kirjoita viesti tähän… Lisää kaava painikkeella (inline tai block)."
+          placeholder: "Kirjoita viesti tähän… Lisää kaava painikkeella (rivinsisäinen tai omalla rivillään)."
         }),
         mathEditorModule.InlineMath,
         mathEditorModule.BlockMath

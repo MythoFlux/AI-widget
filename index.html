@@ -573,6 +573,25 @@
       setStatus
     });
 
+    function getImageFileFromClipboardEvent(event) {
+      const clipboardItems = event?.clipboardData?.items;
+      if (!clipboardItems || clipboardItems.length === 0) return null;
+
+      const imageItem = Array.from(clipboardItems).find((item) => item.type.startsWith("image/"));
+      if (!imageItem) return null;
+
+      return imageItem.getAsFile();
+    }
+
+    function handleImagePaste(event) {
+      const imageFile = getImageFileFromClipboardEvent(event);
+      if (!imageFile) return false;
+
+      event.preventDefault();
+      processScreenshotFile(imageFile);
+      return true;
+    }
+
     const editor = new Editor({
       element: promptEditorEl,
       extensions: [
@@ -590,7 +609,15 @@
         mathEditorModule.InlineMath,
         mathEditorModule.BlockMath
       ],
-      content: "<p></p>"
+      content: "<p></p>",
+      editorProps: {
+        handlePaste(view, event) {
+          if (handleImagePaste(event)) {
+            return true;
+          }
+          return false;
+        }
+      }
     });
 
     mathEditorModule.attachEditor(editor);
@@ -857,20 +884,6 @@
       reader.readAsDataURL(file);
     }
 
-    function handlePaste(event) {
-      const clipboardItems = event.clipboardData?.items;
-      if (!clipboardItems || clipboardItems.length === 0) return;
-
-      const imageItem = Array.from(clipboardItems).find((item) => item.type.startsWith("image/"));
-      if (!imageItem) return;
-
-      const imageFile = imageItem.getAsFile();
-      if (!imageFile) return;
-
-      event.preventDefault();
-      processScreenshotFile(imageFile);
-    }
-
     async function sendMessage() {
       const message = serializeEditorForBackend();
       if (!message && !pendingScreenshotDataUrl) return;
@@ -957,7 +970,7 @@
       clearPendingScreenshot();
       setStatus("Kuvakaappaus poistettu.");
     });
-    document.addEventListener("paste", handlePaste);
+    document.addEventListener("paste", handleImagePaste);
 
     promptEditorEl.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {

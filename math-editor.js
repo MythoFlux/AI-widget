@@ -1,4 +1,4 @@
-export function createMathEditorModule({ Node, mergeAttributes, elements, setStatus }) {
+export function createMathEditorModule({ elements, setStatus }) {
   const {
     mathEditorModalEl,
     mathSymbolSearchEl,
@@ -10,7 +10,6 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
   } = elements;
 
   let editor = null;
-  let pendingMathEdit = null;
 
   const mathSymbolGroups = [
     {
@@ -222,8 +221,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
     }
   }
 
-  function openMathEditor(mode = "inline", latex = "", pos = null, nodeType = null) {
-    pendingMathEdit = pos !== null && Number.isFinite(pos) ? { pos, nodeType } : null;
+  function openMathEditor(mode = "inline", latex = "") {
     mathEditorModalEl.hidden = false;
     mathLatexOutputEl.value = latex;
     const selectedMode = mode === "display" ? "display" : "inline";
@@ -237,8 +235,7 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
 
   function closeMathEditor() {
     mathEditorModalEl.hidden = true;
-    pendingMathEdit = null;
-    editor?.commands.focus();
+    editor?.focus();
   }
 
   function insertFormulaToPrompt() {
@@ -251,111 +248,11 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
     }
 
     const mode = document.querySelector('input[name="math-mode"]:checked')?.value || "inline";
-    const nodeName = mode === "display" ? "blockMath" : "inlineMath";
-    const nodeAttrs = { latex };
-
-    if (pendingMathEdit) {
-      try {
-        editor.commands.command(({ tr, state, dispatch }) => {
-          const targetNode = state.doc.nodeAt(pendingMathEdit.pos);
-          if (!targetNode) return false;
-          const safeNodeName = targetNode.type.name === "inlineMath" || targetNode.type.name === "blockMath"
-            ? targetNode.type.name
-            : nodeName;
-          const targetType = state.schema.nodes[safeNodeName];
-          if (!targetType) return false;
-          tr.setNodeMarkup(pendingMathEdit.pos, targetType, nodeAttrs);
-          if (dispatch) dispatch(tr);
-          return true;
-        });
-      } catch {
-        editor.chain().focus().insertContent(mode === "display"
-          ? [{ type: "blockMath", attrs: nodeAttrs }, { type: "paragraph" }]
-          : { type: "inlineMath", attrs: nodeAttrs }).run();
-      }
-    } else {
-      const insertionPayload = mode === "display"
-        ? [{ type: "blockMath", attrs: nodeAttrs }, { type: "paragraph" }]
-        : { type: "inlineMath", attrs: nodeAttrs };
-      editor.chain().focus().insertContent(insertionPayload).run();
-    }
+    editor.insertMathAtCursor(latex, mode);
 
     closeMathEditor();
     setStatus("Kaava lisätty viestiin.");
   }
-
-  function createMathNode({ name, inline, group, cssClass, displayMode }) {
-    return Node.create({
-      name,
-      group,
-      inline,
-      atom: true,
-      selectable: true,
-      draggable: false,
-      addAttributes() {
-        return {
-          latex: {
-            default: ""
-          }
-        };
-      },
-      parseHTML() {
-        return [{ tag: `${inline ? "span" : "div"}[data-type="${name}"]` }];
-      },
-      renderHTML({ HTMLAttributes }) {
-        return [inline ? "span" : "div", mergeAttributes(HTMLAttributes, {
-          "data-type": name,
-          "data-latex": HTMLAttributes.latex || ""
-        })];
-      },
-      addNodeView() {
-        return ({ node, getPos }) => {
-          const dom = document.createElement(inline ? "span" : "div");
-          dom.className = `math-node ${cssClass}`;
-          dom.dataset.type = name;
-
-          const updateMathNodeDom = (latexValue) => {
-            dom.classList.remove("math-error");
-            dom.dataset.latex = latexValue;
-            renderKatexToElement(dom, latexValue, displayMode);
-            dom.title = "Klikkaa muokataksesi kaavaa";
-          };
-
-          updateMathNodeDom(node.attrs.latex || "");
-
-          dom.addEventListener("click", () => {
-            const pos = typeof getPos === "function" ? getPos() : null;
-            openMathEditor(displayMode ? "display" : "inline", node.attrs.latex || "", pos, name);
-          });
-
-          return {
-            dom,
-            update(updatedNode) {
-              if (updatedNode.type.name !== name) return false;
-              updateMathNodeDom(updatedNode.attrs.latex || "");
-              return true;
-            }
-          };
-        };
-      }
-    });
-  }
-
-  const InlineMath = createMathNode({
-    name: "inlineMath",
-    inline: true,
-    group: "inline",
-    cssClass: "math-inline",
-    displayMode: false
-  });
-
-  const BlockMath = createMathNode({
-    name: "blockMath",
-    inline: false,
-    group: "block",
-    cssClass: "math-block",
-    displayMode: true
-  });
 
   function attachEditor(nextEditor) {
     editor = nextEditor;
@@ -375,8 +272,6 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
   }
 
   return {
-    InlineMath,
-    BlockMath,
     openMathEditor,
     renderKatexToElement,
     setupEventListeners,

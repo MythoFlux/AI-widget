@@ -39,11 +39,11 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
     {
       name: "Sulkeet ja pystyviivat",
       symbols: [
-        { label: "skaalautuvat kaarisulkeet", latex: "\\left( x \\right)" }, { label: "skaalautuvat hakasulkeet", latex: "\\left[ x \\right]" }, 
-        { label: "skaalautuvat aaltosulkeet", latex: "\\left\\{ x \\right\\}" }, 
-        { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left[ x \\right[" },
-        { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left] x \\right]" },
-        { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left] x \\right[" },
+        { label: "skaalautuvat kaarisulkeet", latex: "\\left( a,b \\right)" }, { label: "skaalautuvat hakasulkeet", latex: "\\left[ a,b \\right]" }, 
+        { label: "skaalautuvat aaltosulkeet", latex: "\\left\\{ a,b \\right\\}" }, 
+        { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left[ a,b \\right[" },
+        { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left] a,b \\right]" },
+        { label: "skaalautuvat hakasulkeet (välin ilmaisemiseen)", latex: "\\left] a,b \\right[" },
         { label: "skaalautuvat kulmasulkeet", latex: "\\left\\langle x \\right\\rangle" },
         { label: "erotin", latex: "A\\mid B" }, { label: "pystyviiva", latex: "\\vert" }, 
         { label: "skaalautuva normi", latex: "\\left\\Vert \\mathbf{a} \\right\\Vert" }, { label: "binomikerroin", latex: "\\binom{n}{k}" },
@@ -84,8 +84,12 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         { label: "summa", latex: "\\sum_{i=1}^{n}" }, { label: "tulo", latex: "\\prod_{i=1}^{n}" }, { label: "integraali", latex: "\\int_{a}^{b}" }, 
         { label: "integraalin sijoitus", latex: "\\bigg/_{\\!\\!\\!\\!\\!{a}}^{b}" }, { label: "differentiaali", latex: "\\text{d}x " }, 
         { label: "raja-arvo", latex: "\\lim_{x \\to \\infty}" }, { label: "derivaatta", latex: "\\frac{d}{dx}" },
-        { label: "osittaisderivaatta", latex: "\\partial" }, { label: "nabla", latex: "\\nabla" },
+        { label: "osittaisderivaatta", latex: "\\partial" }, { label: "nabla", latex: "\\nabla" }, 
+        { label: "ensimmäinen aikaderivaatta", latex: "\\dot{x}" }, { label: "toinen aikaderivaatta", latex: "\\ddot{x}" },
+        { label: "kolmas aikaderivaatta", latex: "\\dddot{x}" },
         { label: "sini", latex: "\\sin\\left(x\\right)" }, { label: "kosini", latex: "\\cos\\left(x\\right)" }, { label: "tangentti", latex: "\\tan\\left(x\\right)" },
+        { label: "arkussini", latex: "\\arcsin\\left(x\\right)" }, { label: "arkuskosini", latex: "\\arccos\\left(x\\right)" },
+        { label: "arkustangentti", latex: "\\arctan\\left(x\\right)" },
         { label: "10-kantainen logaritmi", latex: "\\log\\left(x\\right)" }, { label: "yleinen logaritmi", latex: "\\log_a\\left(x\\right)" },
         { label: "luonnollinen logaritmi", latex: "\\ln\\left(x\\right)" }
       ]
@@ -123,6 +127,13 @@ export function createMathEditorModule({ Node, mergeAttributes, elements, setSta
         { label: "nuolivektori alapuolella", latex: "\\underrightarrow{v}" }, { label: "lihavoitu vektori", latex: "\\mathbf{v}" },
         { label: "matriisi", latex: "\\begin{bmatrix}\na & b \\\\\nc & d\n\\end{bmatrix}" },
         { label: "determinantti", latex: "\\begin{vmatrix}a & b\\\\ c & d\\end{vmatrix}" }
+      ]
+    },
+        {
+      name: "Valmiit pohjat",
+      symbols: [
+        { label: "toisen asteen yhtälön ratkaisukaava", latex: "x=\\frac{-b\pm\\sqrt{b^2-4ac}}{2a}" },
+        { label: "määrätty integraali", latex: "\\int_a^b f(x)\,\\text{d}x" },
       ]
     }
   ];

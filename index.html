@@ -260,7 +260,7 @@
       padding: 14px;
       display: grid;
       gap: 12px;
-      overflow: auto;
+      overflow: hidden;
       box-shadow: 0 10px 30px rgb(15 23 42 / 18%);
     }
 
@@ -275,7 +275,8 @@
       grid-template-columns: minmax(220px, 1.1fr) minmax(260px, 1fr) minmax(260px, 1fr);
       gap: 12px;
       min-height: 400px;
-      overflow: auto;
+      height: min(560px, calc(100vh - 260px));
+      overflow: hidden;
     }
 
     .math-pane {
@@ -283,10 +284,11 @@
       border-radius: 10px;
       background: #f8fafc;
       padding: 12px;
-      min-height: 100%;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       gap: 10px;
+      overflow: hidden;
     }
 
     .math-pane h3 {
@@ -308,7 +310,10 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      overflow: auto;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
       padding-right: 2px;
     }
 
@@ -353,34 +358,20 @@
       background: #eff6ff;
     }
 
-    .math-preview-area,
-    .math-latex-area {
-      flex: 1;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      background: #fff;
-      padding: 10px;
-      overflow: auto;
-    }
-
-    .math-preview-area {
-      display: grid;
-      align-content: start;
-      gap: 8px;
-    }
-
     .math-preview-render {
-      min-height: 72px;
+      flex: 1;
+      min-height: 0;
       border: 1px dashed #cbd5e1;
       border-radius: 8px;
       padding: 10px;
       background: #f8fafc;
-      overflow-x: auto;
+      overflow: auto;
     }
 
     .math-latex-output {
       width: 100%;
-      min-height: 130px;
+      flex: 1;
+      min-height: 0;
       resize: vertical;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
@@ -390,10 +381,6 @@
       line-height: 1.4;
       background: #fff;
       color: #0f172a;
-    }
-
-    .math-latex-output {
-      min-height: 265px;
     }
 
     .math-latex-output:focus,
@@ -459,6 +446,14 @@
       .math-editor-layout {
         grid-template-columns: 1fr;
         min-height: auto;
+        height: auto;
+        overflow: auto;
+      }
+      .math-pane {
+        min-height: 220px;
+      }
+      .math-latex-output {
+        min-height: 220px;
       }
     }
   </style>

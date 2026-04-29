@@ -82,7 +82,7 @@ function toResponsesInput(messages, options = {}) {
   const history = messages.map((message, index) => {
     const content = [
       {
-        type: "input_text",
+        type: message.role === "assistant" ? "output_text" : "input_text",
         text: message.content
       }
     ];

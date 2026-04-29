@@ -13,7 +13,6 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
 
     const messagesEl = document.getElementById("messages");
     const promptEditorEl = document.getElementById("prompt-editor-textarea");
-    const composerPreviewEl = document.getElementById("composer-preview");
     const sendButton = document.getElementById("send");
     const addFormulaButton = document.getElementById("add-formula");
     const clearHistoryButton = document.getElementById("clear-history");
@@ -146,6 +145,9 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
             view.dispatch(view.state.tr.setNodeMarkup(pos, null, { ...node.attrs, slots: nextSlots, latex: nextLatex }));
           });
           slotEl.addEventListener("keydown", (event) => {
+            if (event.key === "Backspace" || event.key === "Delete") {
+              event.stopPropagation();
+            }
             if (event.key === "Tab" && event.shiftKey) {
               event.preventDefault();
               slotEls[Math.max(slotIndex - 1, 0)].focus();
@@ -266,12 +268,7 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
     }
 
     function updateComposerPreview() {
-      const text = editor.getText().trim();
-      if (!text) {
-        composerPreviewEl.textContent = "Kaavojen esikatselu näkyy tässä.";
-        return;
-      }
-      renderMessageContent(composerPreviewEl, text);
+      // Koosteen esikatselu poistettu käyttöliittymästä.
     }
 
     // Serialisointi OpenAI:lle: teksti + inlineMath->$...$ + blockMath->$$...$$.

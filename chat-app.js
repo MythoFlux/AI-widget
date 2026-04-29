@@ -156,9 +156,17 @@
       return tokens;
     }
 
+    function normalizeMathDelimiters(text) {
+      if (typeof text !== "string" || text.length === 0) return "";
+      return text
+        .replace(/\\\[([\s\S]+?)\\\]/g, (_, latex) => `$$${latex.trim()}$$`)
+        .replace(/\\\(([\s\S]+?)\\\)/g, (_, latex) => `$${latex.trim()}$`);
+    }
+
     function renderMessageContent(container, rawText) {
       container.replaceChildren();
-      const tokens = tokenizeLatex(rawText);
+      const normalizedText = normalizeMathDelimiters(rawText);
+      const tokens = tokenizeLatex(normalizedText);
 
       for (const token of tokens) {
         if (token.type === "text") {
@@ -176,7 +184,7 @@
 
     // Serialisointi OpenAI:lle: teksti + inlineMath->$...$ + blockMath->$$...$$.
     function serializeEditorForBackend() {
-      return editor.getText().trim();
+      return normalizeMathDelimiters(editor.getText()).trim();
     }
 
     function saveHistory() {
@@ -224,7 +232,8 @@
 
     function addMessageToHistory(role, content, options = {}) {
       const includeInModelContext = options.includeInModelContext !== false;
-      conversationHistory.push({ role, content, includeInModelContext });
+      const normalizedContent = normalizeMathDelimiters(content);
+      conversationHistory.push({ role, content: normalizedContent, includeInModelContext });
       saveHistory();
       renderHistory();
     }

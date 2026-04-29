@@ -6,6 +6,7 @@
 
     const messagesEl = document.getElementById("messages");
     const promptEditorEl = document.getElementById("prompt-editor");
+    const composerPreviewEl = document.getElementById("composer-preview");
     const sendButton = document.getElementById("send");
     const addFormulaButton = document.getElementById("add-formula");
     const clearHistoryButton = document.getElementById("clear-history");
@@ -72,6 +73,7 @@
       },
       clearContent() {
         promptEditorEl.value = "";
+        updateComposerPreview();
       },
       focus() {
         promptEditorEl.focus();
@@ -88,6 +90,7 @@
         const nextCursor = (prefix + padBefore + token).length;
         promptEditorEl.focus();
         promptEditorEl.setSelectionRange(nextCursor, nextCursor);
+        updateComposerPreview();
       }
     };
 
@@ -180,6 +183,15 @@
         mathEditorModule.renderKatexToElement(mathElement, token.value, token.displayMode);
         container.appendChild(mathElement);
       }
+    }
+
+    function updateComposerPreview() {
+      const text = editor.getText().trim();
+      if (!text) {
+        composerPreviewEl.textContent = "Kaavojen esikatselu näkyy tässä.";
+        return;
+      }
+      renderMessageContent(composerPreviewEl, text);
     }
 
     // Serialisointi OpenAI:lle: teksti + inlineMath->$...$ + blockMath->$$...$$.
@@ -440,11 +452,13 @@
         sendMessage();
       }
     });
+    promptEditorEl.addEventListener("input", updateComposerPreview);
 
     loadHistory();
     loadStateSummary();
     saveHistory();
     renderHistory();
     mathEditorModule.renderMathSymbolPalette();
+    updateComposerPreview();
     editor.focus();
   

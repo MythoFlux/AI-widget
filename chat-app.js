@@ -1,4 +1,5 @@
 import { createMathEditorModule } from "./math-editor.js";
+import { normalizeMathDelimiters, tokenizeLatex, serializeMathNodeLatex, serializeNodeToLatex, serializeEditorDocForBackend } from "./editor-serialization.js";
 import { Schema } from "https://esm.sh/prosemirror-model@1.23.0";
 import { EditorState, TextSelection } from "https://esm.sh/prosemirror-state@1.4.3";
 import { EditorView } from "https://esm.sh/prosemirror-view@1.33.10";
@@ -100,14 +101,6 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
 
     const pmPlugins = [history(), keymap(baseKeymap)];
 
-    function serializeMathNodeLatex(node) {
-      if (node.attrs.template === "frac") {
-        const [num = "", den = ""] = node.attrs.slots || [];
-        return `\\frac{${num}}{${den}}`;
-      }
-      return node.attrs.latex || "";
-    }
-
     function parseMathTemplate(latex) {
       if (latex === "\\frac{□}{□}") {
         return { template: "frac", slots: ["", ""], latex: "" };
@@ -133,6 +126,9 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
           const slotEl = document.createElement("span");
           slotEl.className = "math-slot";
           slotEl.contentEditable = "true";
+          slotEl.tabIndex = 0;
+          slotEl.setAttribute("role", "textbox");
+          slotEl.setAttribute("aria-label", slotIndex === 0 ? "Murtoluvun osoittaja" : "Murtoluvun nimittäjä");
           slotEl.dataset.slotIndex = String(slotIndex);
           slotEl.textContent = (node.attrs.slots || ["", ""])[slotIndex] || "";
           slotEl.addEventListener("focus", () => {
@@ -150,6 +146,11 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
             view.dispatch(view.state.tr.setNodeMarkup(pos, null, { ...node.attrs, slots: nextSlots, latex: nextLatex }));
           });
           slotEl.addEventListener("keydown", (event) => {
+            if (event.key === "Tab" && event.shiftKey) {
+              event.preventDefault();
+              slotEls[Math.max(slotIndex - 1, 0)].focus();
+              return;
+            }
             if (event.key === "Tab" || event.key === "ArrowRight" || event.key === "ArrowDown") {
               event.preventDefault();
               slotEls[Math.min(slotIndex + 1, slotEls.length - 1)].focus();
@@ -186,18 +187,6 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
         updateComposerPreview();
       }
     });
-
-    function serializeNodeToLatex(node) {
-      if (node.type.name === "text") return node.text || "";
-      if (node.type.name === "inline_math") return `$${serializeMathNodeLatex(node)}$`;
-      if (node.type.name === "block_math") return `$$${serializeMathNodeLatex(node)}$$`;
-      let output = "";
-      node.forEach((child, _offset, index) => {
-        output += serializeNodeToLatex(child);
-        if (node.type.name === "doc" && index < node.childCount - 1) output += "\n";
-      });
-      return output;
-    }
 
     const editor = {
       getText() {
@@ -256,41 +245,6 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
       return article;
     }
 
-    function tokenizeLatex(text) {
-      // Etsitään sekä $$display$$ että $inline$ -kaavat.
-      const tokens = [];
-      const mathPattern = /\$\$([\s\S]+?)\$\$|\$([^\n$]+?)\$/g;
-      let lastIndex = 0;
-      let match;
-
-      while ((match = mathPattern.exec(text)) !== null) {
-        const matchedText = match[0];
-        const start = match.index;
-        const end = start + matchedText.length;
-
-        if (start > lastIndex) {
-          tokens.push({ type: "text", value: text.slice(lastIndex, start) });
-        }
-
-        const latex = match[1] ?? match[2] ?? "";
-        const displayMode = typeof match[1] === "string";
-        tokens.push({ type: "math", value: latex, displayMode });
-        lastIndex = end;
-      }
-
-      if (lastIndex < text.length) {
-        tokens.push({ type: "text", value: text.slice(lastIndex) });
-      }
-
-      return tokens;
-    }
-
-    function normalizeMathDelimiters(text) {
-      if (typeof text !== "string" || text.length === 0) return "";
-      return text
-        .replace(/\\\[([\s\S]+?)\\\]/g, (_, latex) => `$$${latex.trim()}$$`)
-        .replace(/\\\(([\s\S]+?)\\\)/g, (_, latex) => `$${latex.trim()}$`);
-    }
 
     function renderMessageContent(container, rawText) {
       container.replaceChildren();
@@ -322,7 +276,7 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
 
     // Serialisointi OpenAI:lle: teksti + inlineMath->$...$ + blockMath->$$...$$.
     function serializeEditorForBackend() {
-      return normalizeMathDelimiters(editor.getText()).trim();
+      return serializeEditorDocForBackend(pmView.state.doc);
     }
 
     function saveHistory() {
@@ -370,7 +324,8 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
 
     function addMessageToHistory(role, content, options = {}) {
       const includeInModelContext = options.includeInModelContext !== false;
-      const normalizedContent = normalizeMathDelimiters(content);
+      const normalizedContent = normalizeMathDelimiters(String(content || "")).trim();
+      if (!normalizedContent) return;
       conversationHistory.push({ role, content: normalizedContent, includeInModelContext });
       saveHistory();
       renderHistory();
@@ -581,10 +536,45 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
       setStatus("Kuvakaappaus poistettu.");
     });
 
+    function closeActiveMathTool() {
+      const activeSlot = document.activeElement?.closest?.(".math-slot");
+      if (activeSlot) {
+        activeSlot.blur();
+        editor.focus();
+        return true;
+      }
+
+      if (mathEditorModalEl.classList.contains("is-open")) {
+        mathEditorModule.closeMathEditor();
+        addFormulaButton.setAttribute("aria-expanded", "false");
+        return true;
+      }
+      return false;
+    }
+
     pmView.dom.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
         sendMessage();
+        return;
+      }
+
+      if (event.key === "Enter" && !event.shiftKey && !event.altKey && !event.metaKey && !event.ctrlKey) {
+        event.preventDefault();
+        sendMessage();
+        return;
+      }
+
+      if (event.key === "Escape" && closeActiveMathTool()) {
+        event.preventDefault();
+      }
+    });
+
+    mathEditorModalEl.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        mathEditorModule.closeMathEditor();
+        addFormulaButton.setAttribute("aria-expanded", "false");
       }
     });
 
@@ -599,4 +589,3 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
     }
     updateComposerPreview();
     editor.focus();
-  

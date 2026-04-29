@@ -268,28 +268,17 @@
     }
 
     .math-editor-modal {
-      position: fixed;
-      inset: 0;
-      background: rgb(15 23 42 / 35%);
-      display: grid;
-      place-items: center;
-      z-index: 30;
-      padding: 16px;
-    }
-
-    .math-editor-modal[hidden] { display: none; }
-
-    .math-editor-panel {
-      width: min(1120px, 100%);
-      max-height: calc(100vh - 32px);
-      background: #fff;
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 14px;
+      background: #fff;
+      padding: 10px;
+    }
+
+    .math-editor-panel {
+      width: 100%;
       display: grid;
       gap: 12px;
       overflow: hidden;
-      box-shadow: 0 10px 30px rgb(15 23 42 / 18%);
     }
 
     .math-editor-help {
@@ -300,10 +289,10 @@
 
     .math-editor-layout {
       display: grid;
-      grid-template-columns: minmax(220px, 1.1fr) minmax(260px, 1fr) minmax(260px, 1fr);
+      grid-template-columns: minmax(220px, 1.1fr) minmax(220px, 1fr) minmax(220px, 1fr);
       gap: 12px;
-      min-height: 400px;
-      height: min(560px, calc(100vh - 260px));
+      min-height: 280px;
+      max-height: 420px;
       overflow: hidden;
     }
 
@@ -465,6 +454,8 @@
     }
 
     @media (max-width: 640px) {
+      .math-editor-modal { display: none; }
+      .math-editor-modal.is-open { display: block; }
       body { padding: 10px; }
       .messages { height: 50vh; }
       .actions { flex-direction: column; align-items: stretch; }

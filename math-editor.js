@@ -29,7 +29,7 @@ export function createMathEditorModule({ elements, setStatus }) {
     {
       name: "Murtoluvut & potenssit",
       symbols: [
-        { label: "murtoluku", latex: "\\frac{a}{b}" }, { label: "potenssimerkintä", latex: "x^n" }, { label: "neliöjuuri", latex: "\\sqrt{x}" },
+        { label: "murtoluku", latex: "\\frac{□}{□}" }, { label: "potenssimerkintä", latex: "x^n" }, { label: "neliöjuuri", latex: "\\sqrt{x}" },
         { label: "yleinen juuri", latex: "\\sqrt[n]{x}" }, { label: "alaindeksi", latex: "x_i" }, { label: "ala- ja yläindeksi", latex: "x_i^j" }, 
         { label: "|x|", latex: "\\left|x\\right|" }, { label: "vasen ala- ja yläindeksi", latex: "~_{a}^{b}X" }, 
         { label: "luonnollinen eksponenttifunktio", latex: "\\mathrm{e}^x" }

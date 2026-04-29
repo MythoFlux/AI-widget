@@ -1,11 +1,17 @@
-    import { createMathEditorModule } from "./math-editor.js";
+import { createMathEditorModule } from "./math-editor.js";
+import { Schema } from "https://esm.sh/prosemirror-model@1.23.0";
+import { EditorState, TextSelection } from "https://esm.sh/prosemirror-state@1.4.3";
+import { EditorView } from "https://esm.sh/prosemirror-view@1.33.10";
+import { keymap } from "https://esm.sh/prosemirror-keymap@1.2.2";
+import { baseKeymap } from "https://esm.sh/prosemirror-commands@1.7.0";
+import { history } from "https://esm.sh/prosemirror-history@1.4.1";
 
     const STORAGE_KEY = "ai-chat-history";
     const SUMMARY_STORAGE_KEY = "ai-chat-state-summary";
     const MAX_MESSAGES_FOR_BACKEND = 20;
 
     const messagesEl = document.getElementById("messages");
-    const promptEditorEl = document.getElementById("prompt-editor");
+    const promptEditorEl = document.getElementById("prompt-editor-textarea");
     const composerPreviewEl = document.getElementById("composer-preview");
     const sendButton = document.getElementById("send");
     const addFormulaButton = document.getElementById("add-formula");
@@ -67,34 +73,88 @@
       return true;
     }
 
+    const editorSchema = new Schema({
+      nodes: {
+        doc: { content: "block+" },
+        paragraph: { content: "inline*", group: "block", toDOM: () => ["p", 0] },
+        text: { group: "inline" },
+        inline_math: {
+          group: "inline",
+          inline: true,
+          atom: true,
+          attrs: { latex: { default: "" } },
+          toDOM: (node) => ["span", { class: "math-node math-inline", "data-latex": node.attrs.latex }, node.attrs.latex]
+        },
+        block_math: {
+          group: "block",
+          atom: true,
+          attrs: { latex: { default: "" } },
+          toDOM: (node) => ["div", { class: "math-node math-block", "data-latex": node.attrs.latex }, node.attrs.latex]
+        }
+      }
+    });
+
+    function buildInitialDoc() {
+      return editorSchema.node("doc", null, [editorSchema.node("paragraph")]);
+    }
+
+    const pmPlugins = [history(), keymap(baseKeymap)];
+
+    function createMathNodeView(displayMode) {
+      return (node) => {
+        const dom = document.createElement(displayMode ? "div" : "span");
+        dom.className = `math-node ${displayMode ? "math-block" : "math-inline"}`;
+        mathEditorModule.renderKatexToElement(dom, node.attrs.latex, displayMode);
+        return { dom };
+      };
+    }
+
+    const pmView = new EditorView(promptEditorEl, {
+      state: EditorState.create({ doc: buildInitialDoc(), plugins: pmPlugins }),
+      nodeViews: {
+        inline_math: createMathNodeView(false),
+        block_math: createMathNodeView(true)
+      },
+      dispatchTransaction(transaction) {
+        const nextState = pmView.state.apply(transaction);
+        pmView.updateState(nextState);
+        updateComposerPreview();
+      }
+    });
+
+    function serializeNodeToLatex(node) {
+      if (node.type.name === "text") return node.text || "";
+      if (node.type.name === "inline_math") return `$${node.attrs.latex}$`;
+      if (node.type.name === "block_math") return `$$${node.attrs.latex}$$`;
+      let output = "";
+      node.forEach((child, _offset, index) => {
+        output += serializeNodeToLatex(child);
+        if (node.type.name === "doc" && index < node.childCount - 1) output += "\n";
+      });
+      return output;
+    }
+
     const editor = {
       getText() {
-        return promptEditorEl.value || "";
+        return serializeNodeToLatex(pmView.state.doc);
       },
       clearContent() {
-        promptEditorEl.value = "";
+        pmView.updateState(EditorState.create({ doc: buildInitialDoc(), plugins: pmPlugins }));
         updateComposerPreview();
       },
       focus() {
-        promptEditorEl.focus();
+        pmView.focus();
       },
       insertMathAtCursor(latex, mode = "inline") {
-        const token = mode === "display" ? `$$${latex}$$` : `$${latex}$`;
-        const start = promptEditorEl.selectionStart ?? promptEditorEl.value.length;
-        const end = promptEditorEl.selectionEnd ?? promptEditorEl.value.length;
-        const prefix = promptEditorEl.value.slice(0, start);
-        const suffix = promptEditorEl.value.slice(end);
-        const padBefore = mode === "display" && prefix && !prefix.endsWith("\n") ? "\n" : "";
-        const padAfter = mode === "display" && suffix && !suffix.startsWith("\n") ? "\n" : "";
-        promptEditorEl.value = `${prefix}${padBefore}${token}${padAfter}${suffix}`;
-        const nextCursor = (prefix + padBefore + token).length;
-        promptEditorEl.focus();
-        promptEditorEl.setSelectionRange(nextCursor, nextCursor);
-        updateComposerPreview();
+        const mathNode = editorSchema.node(mode === "display" ? "block_math" : "inline_math", { latex });
+        const { from, to } = pmView.state.selection;
+        let tr = pmView.state.tr.replaceRangeWith(from, to, mathNode);
+        tr = tr.setSelection(TextSelection.near(tr.doc.resolve(Math.min(from + 1, tr.doc.content.size))));
+        pmView.dispatch(tr.scrollIntoView());
       }
     };
 
-    promptEditorEl.placeholder = "Kirjoita viesti tähän… Lisää kaava painikkeella (rivinsisäinen tai omalla rivillään).";
+    promptEditorEl.setAttribute("data-placeholder", "Kirjoita viesti tähän… Lisää kaava painikkeella (rivinsisäinen tai omalla rivillään).");
     promptEditorEl.addEventListener("paste", handleImagePaste);
 
     mathEditorModule.attachEditor(editor);
@@ -446,13 +506,12 @@
       setStatus("Kuvakaappaus poistettu.");
     });
 
-    promptEditorEl.addEventListener("keydown", (event) => {
+    pmView.dom.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
         sendMessage();
       }
     });
-    promptEditorEl.addEventListener("input", updateComposerPreview);
 
     loadHistory();
     loadStateSummary();

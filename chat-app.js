@@ -82,13 +82,13 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
           group: "inline",
           inline: true,
           atom: true,
-          attrs: { latex: { default: "" } },
+          attrs: { latex: { default: "" }, template: { default: null }, slots: { default: [] } },
           toDOM: (node) => ["span", { class: "math-node math-inline", "data-latex": node.attrs.latex }, node.attrs.latex]
         },
         block_math: {
           group: "block",
           atom: true,
-          attrs: { latex: { default: "" } },
+          attrs: { latex: { default: "" }, template: { default: null }, slots: { default: [] } },
           toDOM: (node) => ["div", { class: "math-node math-block", "data-latex": node.attrs.latex }, node.attrs.latex]
         }
       }
@@ -100,11 +100,76 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
 
     const pmPlugins = [history(), keymap(baseKeymap)];
 
+    function serializeMathNodeLatex(node) {
+      if (node.attrs.template === "frac") {
+        const [num = "", den = ""] = node.attrs.slots || [];
+        return `\\frac{${num}}{${den}}`;
+      }
+      return node.attrs.latex || "";
+    }
+
+    function parseMathTemplate(latex) {
+      if (latex === "\\frac{□}{□}") {
+        return { template: "frac", slots: ["", ""], latex: "" };
+      }
+      return { template: null, slots: [], latex };
+    }
+
     function createMathNodeView(displayMode) {
-      return (node) => {
+      return (node, view, getPos) => {
         const dom = document.createElement(displayMode ? "div" : "span");
         dom.className = `math-node ${displayMode ? "math-block" : "math-inline"}`;
-        mathEditorModule.renderKatexToElement(dom, node.attrs.latex, displayMode);
+        if (node.attrs.template !== "frac") {
+          mathEditorModule.renderKatexToElement(dom, serializeMathNodeLatex(node), displayMode);
+          return { dom };
+        }
+
+        dom.classList.add("math-template-node");
+        const visual = document.createElement(displayMode ? "div" : "span");
+        visual.className = "math-template-visual";
+        const slotsWrap = document.createElement("span");
+        slotsWrap.className = "math-template-slots";
+        const slotEls = [0, 1].map((slotIndex) => {
+          const slotEl = document.createElement("span");
+          slotEl.className = "math-slot";
+          slotEl.contentEditable = "true";
+          slotEl.dataset.slotIndex = String(slotIndex);
+          slotEl.textContent = (node.attrs.slots || ["", ""])[slotIndex] || "";
+          slotEl.addEventListener("focus", () => {
+            const pos = typeof getPos === "function" ? getPos() : null;
+            if (typeof pos === "number") {
+              view.dispatch(view.state.tr.setSelection(TextSelection.near(view.state.doc.resolve(pos + 1))));
+            }
+          });
+          slotEl.addEventListener("input", () => {
+            const nextSlots = [...(node.attrs.slots || ["", ""])];
+            nextSlots[slotIndex] = slotEl.textContent || "";
+            const pos = typeof getPos === "function" ? getPos() : null;
+            if (typeof pos !== "number") return;
+            const nextLatex = `\\frac{${nextSlots[0] || ""}}{${nextSlots[1] || ""}}`;
+            view.dispatch(view.state.tr.setNodeMarkup(pos, null, { ...node.attrs, slots: nextSlots, latex: nextLatex }));
+          });
+          slotEl.addEventListener("keydown", (event) => {
+            if (event.key === "Tab" || event.key === "ArrowRight" || event.key === "ArrowDown") {
+              event.preventDefault();
+              slotEls[Math.min(slotIndex + 1, slotEls.length - 1)].focus();
+            }
+            if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+              event.preventDefault();
+              slotEls[Math.max(slotIndex - 1, 0)].focus();
+            }
+            if ((event.key === "Backspace" || event.key === "Delete") && !(slotEl.textContent || "").length && slotIndex > 0) {
+              event.preventDefault();
+              slotEls[slotIndex - 1].focus();
+            }
+          });
+          return slotEl;
+        });
+
+        const templateLatex = `\\frac{${(node.attrs.slots || ["", ""])[0] || "\\square"}}{${(node.attrs.slots || ["", ""])[1] || "\\square"}}`;
+        mathEditorModule.renderKatexToElement(visual, templateLatex, displayMode);
+        slotsWrap.append(slotEls[0], slotEls[1]);
+        dom.replaceChildren(visual, slotsWrap);
         return { dom };
       };
     }
@@ -124,8 +189,8 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
 
     function serializeNodeToLatex(node) {
       if (node.type.name === "text") return node.text || "";
-      if (node.type.name === "inline_math") return `$${node.attrs.latex}$`;
-      if (node.type.name === "block_math") return `$$${node.attrs.latex}$$`;
+      if (node.type.name === "inline_math") return `$${serializeMathNodeLatex(node)}$`;
+      if (node.type.name === "block_math") return `$$${serializeMathNodeLatex(node)}$$`;
       let output = "";
       node.forEach((child, _offset, index) => {
         output += serializeNodeToLatex(child);
@@ -146,7 +211,8 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
         pmView.focus();
       },
       insertMathAtCursor(latex, mode = "inline") {
-        const mathNode = editorSchema.node(mode === "display" ? "block_math" : "inline_math", { latex });
+        const parsed = parseMathTemplate(latex);
+        const mathNode = editorSchema.node(mode === "display" ? "block_math" : "inline_math", parsed);
         const { from, to } = pmView.state.selection;
         let tr = pmView.state.tr.replaceRangeWith(from, to, mathNode);
         tr = tr.setSelection(TextSelection.near(tr.doc.resolve(Math.min(from + 1, tr.doc.content.size))));

@@ -172,6 +172,35 @@
       border-color: #fecaca;
     }
 
+    .math-template-node {
+      gap: 8px;
+      cursor: default;
+    }
+
+    .math-template-slots {
+      display: inline-flex;
+      gap: 6px;
+    }
+
+    .math-slot {
+      min-width: 1.8em;
+      border: 1px dashed #64748b;
+      border-radius: 4px;
+      padding: 1px 4px;
+      background: #fff;
+      outline: none;
+    }
+
+    .math-slot:empty::before {
+      content: "□";
+      color: #64748b;
+    }
+
+    .math-slot:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px #93c5fd;
+    }
+
     .actions {
       display: flex;
       justify-content: space-between;

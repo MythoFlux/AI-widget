@@ -32,7 +32,7 @@
       <div class="actions">
         <div id="status" class="status" role="status" aria-live="polite"></div>
         <div class="button-group">
-          <button id="add-formula" class="math-button" type="button">Lisää kaava</button>
+          <button id="add-formula" class="math-button" type="button" aria-expanded="false" aria-controls="math-editor-modal">Kaavatyökalut</button>
           <button id="clear-history" class="clear-button" type="button">Tyhjennä keskustelu</button>
           <button id="send" type="button">Lähetä</button>
         </div>
@@ -40,8 +40,8 @@
     </section>
   </main>
 
-  <div id="math-editor-modal" class="math-editor-modal" hidden>
-    <section class="math-editor-panel" role="dialog" aria-modal="true" aria-labelledby="math-editor-title">
+  <section id="math-editor-modal" class="math-editor-modal" aria-labelledby="math-editor-title">
+    <div class="math-editor-panel">
       <h2 id="math-editor-title">Lisää matemaattinen kaava</h2>
       <p class="math-editor-help">Valitse merkkejä vasemmalta, näe esikatselu keskellä ja muokkaa LaTeXia oikealla.</p>
       <div class="math-mode-toggle">
@@ -68,8 +68,8 @@
         <button id="cancel-formula" type="button" class="ghost-button">Peruuta</button>
         <button id="insert-formula" type="button">Lisää tekstiin</button>
       </div>
-    </section>
-  </div>
+    </div>
+  </section>
 
   <script type="module" src="./chat-app.js"></script>
 </body>

@@ -180,6 +180,19 @@ export function createMathEditorModule({ elements, setStatus }) {
     syncMathPreviewFromLatex();
   }
 
+
+  function isBlockLatex(latex) {
+    return /\\begin\{(aligned|cases|array|bmatrix|vmatrix)\}/.test(latex);
+  }
+
+  function insertSymbolToPrompt(symbolLatex) {
+    if (!editor) return;
+    const mode = isBlockLatex(symbolLatex) ? "display" : "inline";
+    editor.insertMathAtCursor(symbolLatex, mode);
+    editor.focus();
+    setStatus("Kaava lisätty viestiin.");
+  }
+
   function renderMathSymbolPalette() {
     const query = mathSymbolSearchEl.value.trim().toLowerCase();
     const groups = mathSymbolGroups
@@ -213,7 +226,11 @@ export function createMathEditorModule({ elements, setStatus }) {
         renderKatexToElement(button, symbol.latex, false, symbol.label);
         button.title = buttonLabel;
         button.querySelectorAll("[title]").forEach((el) => el.removeAttribute("title"));
-        button.addEventListener("click", () => insertLatexIntoEditor(symbol.latex));
+        button.addEventListener("mousedown", (event) => event.preventDefault());
+        button.addEventListener("click", () => {
+          insertLatexIntoEditor(symbol.latex);
+          insertSymbolToPrompt(symbol.latex);
+        });
         grid.appendChild(button);
       }
 
@@ -223,7 +240,7 @@ export function createMathEditorModule({ elements, setStatus }) {
   }
 
   function openMathEditor(mode = "inline", latex = "") {
-    mathEditorModalEl.hidden = false;
+    mathEditorModalEl.classList.add("is-open");
     mathLatexOutputEl.value = latex;
     const selectedMode = mode === "display" ? "display" : "inline";
     const radioToSelect = document.querySelector(`input[name="math-mode"][value="${selectedMode}"]`);
@@ -235,7 +252,7 @@ export function createMathEditorModule({ elements, setStatus }) {
   }
 
   function closeMathEditor() {
-    mathEditorModalEl.hidden = true;
+    mathEditorModalEl.classList.remove("is-open");
     editor?.focus();
   }
 
@@ -267,13 +284,11 @@ export function createMathEditorModule({ elements, setStatus }) {
     document.querySelectorAll('input[name="math-mode"]').forEach((radio) => {
       radio.addEventListener("change", () => updateMathPreview(mathLatexOutputEl.value.trim()));
     });
-    mathEditorModalEl.addEventListener("click", (event) => {
-      if (event.target === mathEditorModalEl) closeMathEditor();
-    });
   }
 
   return {
     openMathEditor,
+    closeMathEditor,
     renderKatexToElement,
     setupEventListeners,
     attachEditor,

@@ -563,7 +563,16 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
 
     setupKnownNonAppWarningFilter();
     sendButton.addEventListener("click", sendMessage);
-    addFormulaButton.addEventListener("click", () => mathEditorModule.openMathEditor());
+    addFormulaButton.addEventListener("click", () => {
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      if (isMobile && mathEditorModalEl.classList.contains("is-open")) {
+        mathEditorModule.closeMathEditor();
+        addFormulaButton.setAttribute("aria-expanded", "false");
+        return;
+      }
+      mathEditorModule.openMathEditor();
+      addFormulaButton.setAttribute("aria-expanded", "true");
+    });
     mathEditorModule.setupEventListeners();
     clearHistoryButton.addEventListener("click", clearHistory);
     screenshotInput.addEventListener("change", handleScreenshotChange);
@@ -584,6 +593,10 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
     saveHistory();
     renderHistory();
     mathEditorModule.renderMathSymbolPalette();
+    if (!window.matchMedia("(max-width: 640px)").matches) {
+      mathEditorModule.openMathEditor();
+      addFormulaButton.setAttribute("aria-expanded", "true");
+    }
     updateComposerPreview();
     editor.focus();
   

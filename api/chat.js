@@ -14,10 +14,17 @@ function extractReply(data) {
     return data.output_text.trim();
   }
 
-  const contentItems = data?.output?.[0]?.content;
-  if (Array.isArray(contentItems)) {
-    const textItem = contentItems.find((item) => item?.type === "output_text" && typeof item.text === "string");
-    if (textItem?.text?.trim()) return textItem.text.trim();
+  const outputs = Array.isArray(data?.output) ? data.output : [];
+  for (const output of outputs) {
+    const contentItems = Array.isArray(output?.content) ? output.content : [];
+    for (const item of contentItems) {
+      if (item?.type === "output_text" && typeof item.text === "string" && item.text.trim()) {
+        return item.text.trim();
+      }
+      if (item?.type === "text" && typeof item?.text === "string" && item.text.trim()) {
+        return item.text.trim();
+      }
+    }
   }
 
   return "";
@@ -73,10 +80,9 @@ function toResponsesInput(messages, options = {}) {
   })();
 
   const history = messages.map((message, index) => {
-    const contentType = message.role === "assistant" ? "output_text" : "input_text";
     const content = [
       {
-        type: contentType,
+        type: "input_text",
         text: message.content
       }
     ];

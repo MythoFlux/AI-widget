@@ -145,7 +145,8 @@ export function createMathEditorModule({ elements, setStatus }) {
     try {
       window.katex.render(latex, element, {
         displayMode,
-        throwOnError: false
+        throwOnError: false,
+        strict: "ignore"
       });
       return true;
     } catch {

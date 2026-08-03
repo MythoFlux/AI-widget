@@ -259,6 +259,7 @@
     }
 
     .math-editor-modal {
+      width: min(900px, 100%);
       border: 1px solid var(--border);
       border-radius: 12px;
       background: #fff;
@@ -280,12 +281,23 @@
 
     .math-editor-layout {
       display: grid;
-      grid-template-columns: minmax(220px, 1.1fr) minmax(220px, 1fr) minmax(220px, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        "input preview"
+        "symbols symbols";
+      grid-template-rows: minmax(280px, 1fr) minmax(180px, auto);
       gap: 12px;
-      min-height: 280px;
-      max-height: 420px;
-      overflow: hidden;
+      min-height: 472px;
     }
+
+    .math-input-pane { grid-area: input; }
+
+    .math-symbol-pane {
+      grid-area: symbols;
+      max-height: 260px;
+    }
+
+    .math-preview-pane { grid-area: preview; }
 
     .math-pane {
       border: 1px solid var(--border);
@@ -455,10 +467,16 @@
       .math-editor-panel { max-height: calc(100vh - 20px); }
       .math-editor-layout {
         grid-template-columns: 1fr;
+        grid-template-areas:
+          "input"
+          "preview"
+          "symbols";
+        grid-template-rows: none;
         min-height: auto;
         height: auto;
         overflow: auto;
       }
+      .math-symbol-pane { max-height: none; }
       .math-pane {
         min-height: 220px;
       }

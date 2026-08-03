@@ -42,13 +42,17 @@
   <section id="math-editor-modal" class="math-editor-modal" aria-labelledby="math-editor-title">
     <div class="math-editor-panel">
       <h2 id="math-editor-title">Lisää matemaattinen kaava</h2>
-      <p class="math-editor-help">Valitse merkkejä vasemmalta, näe esikatselu keskellä ja muokkaa LaTeXia oikealla.</p>
+      <p class="math-editor-help">Näppäile kaava vasemmalla, valitse symboleita keskeltä ja näe esikatselu oikealla.</p>
       <div class="math-mode-toggle">
         <strong>Näyttötapa:</strong>
         <label><input type="radio" name="math-mode" value="inline" checked /> Rivinsisäinen</label>
         <label><input type="radio" name="math-mode" value="display" /> Omalla rivillään</label>
       </div>
       <div class="math-editor-layout">
+        <section class="math-pane" aria-label="LaTeX-koodi">
+          <h3>Näppäile kaava tähän</h3>
+          <textarea id="math-latex-output" class="math-latex-output" spellcheck="false" aria-label="LaTeX-koodi"></textarea>
+        </section>
         <section class="math-pane" aria-label="Symbolipaneeli">
           <h3>Symbolit</h3>
           <input id="math-symbol-search" class="symbol-search" type="search" placeholder="Hae symboleita..." />
@@ -57,10 +61,6 @@
         <section class="math-pane" aria-label="Esikatselu">
           <h3>Esikatselu</h3>
           <div id="math-preview-render" class="math-preview-render" aria-live="polite"></div>
-        </section>
-        <section class="math-pane" aria-label="LaTeX-koodi">
-          <h3>LaTeX</h3>
-          <textarea id="math-latex-output" class="math-latex-output" spellcheck="false" aria-label="LaTeX-koodi"></textarea>
         </section>
       </div>
       <div class="button-group">

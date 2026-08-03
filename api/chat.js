@@ -146,7 +146,7 @@ module.exports = async function handler(req, res) {
         Authorization: `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-5-mini",
+        model: "gpt-5.6-terra",
         input: toResponsesInput(validMessages, {
           latestUserImage: body.latestUserImage || null,
           stateSummary: body.stateSummary || ""

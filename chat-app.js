@@ -109,11 +109,20 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
 
     function createMathNodeView(displayMode) {
       return (node, view, getPos) => {
+        let currentNode = node;
         const dom = document.createElement(displayMode ? "div" : "span");
         dom.className = `math-node ${displayMode ? "math-block" : "math-inline"}`;
-        if (node.attrs.template !== "frac") {
-          mathEditorModule.renderKatexToElement(dom, serializeMathNodeLatex(node), displayMode);
-          return { dom };
+        if (currentNode.attrs.template !== "frac") {
+          mathEditorModule.renderKatexToElement(dom, serializeMathNodeLatex(currentNode), displayMode);
+          return {
+            dom,
+            update(updatedNode) {
+              if (updatedNode.type !== currentNode.type || updatedNode.attrs.template === "frac") return false;
+              currentNode = updatedNode;
+              mathEditorModule.renderKatexToElement(dom, serializeMathNodeLatex(currentNode), displayMode);
+              return true;
+            }
+          };
         }
 
         dom.classList.add("math-template-node");
@@ -121,6 +130,37 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
         visual.className = "math-template-visual";
         const slotsWrap = document.createElement("span");
         slotsWrap.className = "math-template-slots";
+        let pendingSelection = null;
+
+        function getSlotSelection(slotEl, slotIndex) {
+          const selection = window.getSelection();
+          if (!selection || selection.rangeCount === 0) return null;
+          const range = selection.getRangeAt(0);
+          if (!slotEl.contains(range.startContainer) || !slotEl.contains(range.endContainer)) return null;
+
+          const beforeStart = range.cloneRange();
+          beforeStart.selectNodeContents(slotEl);
+          beforeStart.setEnd(range.startContainer, range.startOffset);
+          const beforeEnd = range.cloneRange();
+          beforeEnd.selectNodeContents(slotEl);
+          beforeEnd.setEnd(range.endContainer, range.endOffset);
+          return { slotIndex, start: beforeStart.toString().length, end: beforeEnd.toString().length };
+        }
+
+        function setSlotSelection({ slotIndex, start, end }) {
+          const slotEl = slotEls[slotIndex];
+          if (!slotEl) return;
+          const textNode = slotEl.firstChild || slotEl.appendChild(document.createTextNode(""));
+          const maxOffset = textNode.textContent?.length || 0;
+          const range = document.createRange();
+          range.setStart(textNode, Math.min(start, maxOffset));
+          range.setEnd(textNode, Math.min(end, maxOffset));
+          const selection = window.getSelection();
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+          slotEl.focus();
+        }
+
         const slotEls = [0, 1].map((slotIndex) => {
           const slotEl = document.createElement("span");
           slotEl.className = "math-slot";
@@ -129,7 +169,7 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
           slotEl.setAttribute("role", "textbox");
           slotEl.setAttribute("aria-label", slotIndex === 0 ? "Murtoluvun osoittaja" : "Murtoluvun nimittäjä");
           slotEl.dataset.slotIndex = String(slotIndex);
-          slotEl.textContent = (node.attrs.slots || ["", ""])[slotIndex] || "";
+          slotEl.textContent = (currentNode.attrs.slots || ["", ""])[slotIndex] || "";
           slotEl.addEventListener("focus", () => {
             const pos = typeof getPos === "function" ? getPos() : null;
             if (typeof pos === "number") {
@@ -137,12 +177,13 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
             }
           });
           slotEl.addEventListener("input", () => {
-            const nextSlots = [...(node.attrs.slots || ["", ""])];
+            const nextSlots = [...(currentNode.attrs.slots || ["", ""])];
             nextSlots[slotIndex] = slotEl.textContent || "";
             const pos = typeof getPos === "function" ? getPos() : null;
             if (typeof pos !== "number") return;
             const nextLatex = `\\frac{${nextSlots[0] || ""}}{${nextSlots[1] || ""}}`;
-            view.dispatch(view.state.tr.setNodeMarkup(pos, null, { ...node.attrs, slots: nextSlots, latex: nextLatex }));
+            pendingSelection = getSlotSelection(slotEl, slotIndex);
+            view.dispatch(view.state.tr.setNodeMarkup(pos, null, { ...currentNode.attrs, slots: nextSlots, latex: nextLatex }));
           });
           slotEl.addEventListener("keydown", (event) => {
             if (event.key === "Backspace" || event.key === "Delete") {
@@ -161,19 +202,49 @@ import { history } from "https://esm.sh/prosemirror-history@1.4.1";
               event.preventDefault();
               slotEls[Math.max(slotIndex - 1, 0)].focus();
             }
-            if ((event.key === "Backspace" || event.key === "Delete") && !(slotEl.textContent || "").length && slotIndex > 0) {
+            if (event.key === "Backspace" && !(slotEl.textContent || "").length && slotIndex > 0) {
               event.preventDefault();
-              slotEls[slotIndex - 1].focus();
+              const previousSlot = slotEls[slotIndex - 1];
+              previousSlot.focus();
+              setSlotSelection({
+                slotIndex: slotIndex - 1,
+                start: (previousSlot.textContent || "").length,
+                end: (previousSlot.textContent || "").length
+              });
             }
           });
           return slotEl;
         });
 
-        const templateLatex = `\\frac{${(node.attrs.slots || ["", ""])[0] || "\\square"}}{${(node.attrs.slots || ["", ""])[1] || "\\square"}}`;
+        const templateLatex = `\\frac{${(currentNode.attrs.slots || ["", ""])[0] || "\\square"}}{${(currentNode.attrs.slots || ["", ""])[1] || "\\square"}}`;
         mathEditorModule.renderKatexToElement(visual, templateLatex, displayMode);
         slotsWrap.append(slotEls[0], slotEls[1]);
         dom.replaceChildren(visual, slotsWrap);
-        return { dom };
+        return {
+          dom,
+          update(updatedNode) {
+            if (updatedNode.type !== currentNode.type || updatedNode.attrs.template !== "frac") return false;
+            currentNode = updatedNode;
+            let changedDom = false;
+            const updatedSlots = currentNode.attrs.slots || ["", ""];
+            slotEls.forEach((slotEl, slotIndex) => {
+              const updatedText = updatedSlots[slotIndex] || "";
+              if (slotEl.textContent !== updatedText) {
+                slotEl.textContent = updatedText;
+                changedDom = true;
+              }
+            });
+            if (changedDom && pendingSelection) setSlotSelection(pendingSelection);
+            pendingSelection = null;
+            return true;
+          },
+          stopEvent(event) {
+            return slotEls.some((slotEl) => slotEl === event.target || slotEl.contains(event.target));
+          },
+          ignoreMutation(mutation) {
+            return slotEls.some((slotEl) => slotEl === mutation.target || slotEl.contains(mutation.target));
+          }
+        };
       };
     }
 
